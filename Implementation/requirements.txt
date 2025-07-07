@@ -1,0 +1,22 @@
+torch
+torchvision
+scikit-learn
+
+easyocr
+Pillow
+opencv-python
+
+transformers
+# sentencepiece
+# protobuf
+
+python-docx
+
+dropbox
+
+numpy
+pandas
+
+scipy
+unidecode
+regex
