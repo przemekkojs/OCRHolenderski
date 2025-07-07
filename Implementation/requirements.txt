@@ -7,8 +7,6 @@ Pillow
 opencv-python
 
 transformers
-# sentencepiece
-# protobuf
 
 python-docx
 
