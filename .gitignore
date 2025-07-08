@@ -1,0 +1,7 @@
+TestImages/
+Meet_04_07/
+Meet_27-06/
+
+*.pyc
+*/__pycache__
+

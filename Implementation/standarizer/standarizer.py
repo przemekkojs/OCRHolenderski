@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 
-def binary_threshold_rgb(image):
+def __binary_threshold_rgb(image):
     threshold = np.array([123, 123, 123])
     mask = np.all(image > threshold, axis=2)
 
@@ -10,7 +10,7 @@ def binary_threshold_rgb(image):
 
     return result
 
-def order_points(pts):
+def __order_points(pts):
     rect = np.zeros((4, 2), dtype="float32")
 
     s = pts.sum(axis=1)
@@ -23,16 +23,23 @@ def order_points(pts):
 
     return rect
 
-def test(image_path:str, output_path:str, debug:bool=False):
-    image = cv2.imread(image_path)
+def __add_border_lines(image) -> None:
     line_width = 15
-    cv2.line(image, (0, 0), (image.shape[1], 0), (0, 0, 0), line_width) # G
-    cv2.line(image, (0, image.shape[0] - 1), (image.shape[1], image.shape[0] - 1), (0, 0, 0), line_width) # D    
-    cv2.line(image, (0, 0), (0, image.shape[0] - 1), (0, 0, 0), line_width) # L
-    cv2.line(image, (image.shape[1], 0), (image.shape[1], image.shape[0] - 1), (0, 0, 0), line_width) # P
+    black = (0, 0, 0)
+    x = image.shape[0] - 1
+    y = image.shape[1]
 
+    cv2.line(image, (0, 0), (y, 0), black, line_width) # G
+    cv2.line(image, (0, x), (y, x), black, line_width) # D    
+    cv2.line(image, (0, 0), (0, x), black, line_width) # L
+    cv2.line(image, (y, 0), (y, x), black, line_width) # P
+
+def process_image_file(image_path:str, output_path:str, output_size:tuple[int, int]=(1240, 1754), debug:bool=False):
+    image = cv2.imread(image_path)
     orig = image.copy()
-    image = binary_threshold_rgb(image)
+
+    __add_border_lines(image)    
+    image = __binary_threshold_rgb(image)
 
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)    
     edges = cv2.Canny(gray, threshold1=150, threshold2=200)
@@ -58,7 +65,7 @@ def test(image_path:str, output_path:str, debug:bool=False):
             print("Nie znaleziono konturu o 4 narożnikach.")
 
     pts = document_contour.reshape(4, 2)
-    rect = order_points(pts)
+    rect = __order_points(pts)
 
     (tl, tr, br, bl) = rect
 
@@ -83,6 +90,7 @@ def test(image_path:str, output_path:str, debug:bool=False):
     sharpen_kernel = np.array([[0, -1, 0], [-1, 5, -1], [0, -1, 0]])
     sharpened = cv2.filter2D(warped, -1, sharpen_kernel)
     enhanced = cv2.convertScaleAbs(sharpened, alpha=1.3, beta=15)
+    standardized = cv2.resize(enhanced, output_size, interpolation=cv2.INTER_CUBIC)
 
     if debug:
         cv2.imshow("Wyostrzony skan", enhanced)
@@ -90,4 +98,3 @@ def test(image_path:str, output_path:str, debug:bool=False):
         cv2.destroyAllWindows()
 
     cv2.imwrite(output_path, enhanced)   
-    
