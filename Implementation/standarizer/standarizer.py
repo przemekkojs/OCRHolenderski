@@ -2,7 +2,8 @@ import cv2
 import numpy as np
 
 def __binary_threshold_rgb(image):
-    threshold = np.array([123, 123, 123])
+    color_val:int = 123
+    threshold:np.ndarray = np.array([color_val, color_val, color_val])
     mask = np.all(image > threshold, axis=2)
 
     result = np.zeros_like(image)
@@ -34,18 +35,32 @@ def __add_border_lines(image) -> None:
     cv2.line(image, (0, 0), (0, x), black, line_width) # L
     cv2.line(image, (y, 0), (y, x), black, line_width) # P
 
+def __window(name:str, size:tuple[int, int], file) -> None:
+    cv2.namedWindow(name, cv2.WINDOW_NORMAL)
+    cv2.resizeWindow(name, size[0], size[1])
+    cv2.imshow(name, file) 
+
 def process_image_file(image_path:str, output_path:str, output_size:tuple[int, int]=(1240, 1754), debug:bool=False):
     image = cv2.imread(image_path)
     orig = image.copy()
+    
+    if debug:
+        __window("Orig", (1240, 1754), orig)
+        cv2.waitKey(0)
 
     __add_border_lines(image)    
     image = __binary_threshold_rgb(image)
 
-    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)    
-    edges = cv2.Canny(gray, threshold1=150, threshold2=200)
-    contours, _ = cv2.findContours(edges, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    contours, _ = cv2.findContours(gray, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
     contours = sorted(contours, key=cv2.contourArea, reverse=True)
-    
+
+    if debug:
+        __window("Image", (1240, 1754), image)
+        cv2.waitKey(0)
+        __window("Gray", (1240, 1754), gray)
+        cv2.waitKey(0)
+
     document_contour = None
 
     for c in contours:
@@ -58,9 +73,9 @@ def process_image_file(image_path:str, output_path:str, output_size:tuple[int, i
     
     if debug:
         if document_contour is not None:            
-                cv2.drawContours(orig, [document_contour], -1, (0, 255, 0), 3)
-                cv2.imshow("Znaleziony kontur dokumentu", orig)
-                cv2.waitKey(0)
+            cv2.drawContours(orig, [document_contour], -1, (0, 255, 0), 3)
+            __window("Contours", (1240, 1754), orig)
+            cv2.waitKey(0)
         else:
             print("Nie znaleziono konturu o 4 narożnikach.")
 
@@ -91,10 +106,11 @@ def process_image_file(image_path:str, output_path:str, output_size:tuple[int, i
     sharpened = cv2.filter2D(warped, -1, sharpen_kernel)
     enhanced = cv2.convertScaleAbs(sharpened, alpha=1.3, beta=15)
     standardized = cv2.resize(enhanced, output_size, interpolation=cv2.INTER_CUBIC)
+    cv2.imwrite(output_path, standardized)
 
     if debug:
-        cv2.imshow("Wyostrzony skan", enhanced)
+        __window("Standardized", (1240, 1754), standardized)
         cv2.waitKey(0)
         cv2.destroyAllWindows()
-
-    cv2.imwrite(output_path, enhanced)   
+        print(f"Zapisano plik: >> {output_path} <<")
+    
