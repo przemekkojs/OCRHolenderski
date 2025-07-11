@@ -1,5 +1,6 @@
 from ocr.ocr_reader import ocr
 from standarizer.standarizer import process_image_file
+from logger import log
 
 import os
 
@@ -70,8 +71,20 @@ def __test_text(debug:bool=False):
     result = OCR.read_text_only(f"{__out_files_dir}/20250601_133903.png")
     print(result)
 
+def __info_simple():
+    log("This is some info")
+
+def __warning_simple():
+    log("This is some warning", level=1)
+
+def __error_simple():
+    log("This is some error", level=2)
+
 if __name__ == '__main__':
     # __test_one_file()
     # __test_all()
-    __test_text()
+    # __test_text()
 
+    __info_simple()
+    __warning_simple()
+    __error_simple()
