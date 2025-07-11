@@ -1,4 +1,4 @@
-from ocr.ocr_learning import ocr
+from ocr.ocr_reader import ocr
 from standarizer.standarizer import process_image_file
 
 import os
@@ -30,7 +30,7 @@ def __test_one_file(debug:bool=False) -> None:
         output_path=f"{__out_files_dir}/20250601_133903.png",
         debug=debug)
     
-    result = OCR.read(f"{__out_files_dir}/20250601_133903.png")                        
+    result = OCR.read_full_list(f"{__out_files_dir}/20250601_133903.png")                        
     __stats(result, debug)
 
 def __test_all(debug:bool=False):
@@ -49,7 +49,7 @@ def __test_all(debug:bool=False):
                 output_path=path_processed,
                 debug=debug)
 
-            result = OCR.read(path_processed)                  
+            result = OCR.read_full_list(path_processed)                  
             sum += __stats(result, debug)            
         except Exception as e:
             print(f"Nie udało się przetworzyć obrazu \"{png_filename}\"")
@@ -61,6 +61,17 @@ def __test_all(debug:bool=False):
 
     print("ŚREDNIA DOKŁADNOŚĆ ZE WSZYSTKICH:", avg_acc)
 
+def __test_text(debug:bool=False):
+    process_image_file(
+        image_path=f"{__test_files_dir}/20250601_133903.jpg",
+        output_path=f"{__out_files_dir}/20250601_133903.png",
+        debug=debug)
+    
+    result = OCR.read_text_only(f"{__out_files_dir}/20250601_133903.png")
+    print(result)
+
 if __name__ == '__main__':
     # __test_one_file()
-    __test_all()
+    # __test_all()
+    __test_text()
+
