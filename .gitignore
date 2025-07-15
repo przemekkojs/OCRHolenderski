@@ -13,3 +13,4 @@ Implementation/build
 Implementation/dist
 
 *.spec
+Installer/
