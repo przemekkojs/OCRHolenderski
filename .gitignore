@@ -13,4 +13,3 @@ Implementation/build
 Implementation/dist
 
 *.spec
-*.exe
