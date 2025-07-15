@@ -19,10 +19,9 @@ class __ocr_models:
         self.__models[key] = value
 
 
-def init_models():
+def __init_models():
     for language in SUPPORTED_LANGUAGES:
         ocr_models[language] = Reader([language], gpu=True)
 
 ocr_models = __ocr_models()
-
-init_models()
+__init_models()

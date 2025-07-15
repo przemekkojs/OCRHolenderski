@@ -5,3 +5,5 @@ Meet_27-06/
 *.pyc
 */__pycache__
 
+*.reg
+*.bat
