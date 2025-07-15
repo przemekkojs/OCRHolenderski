@@ -19,7 +19,12 @@ class program:
         self.file_out_error:str = os.path.join(folder, file_err_name)
 
         self.result_success:bool = True
-        self.log_contents:str = "ROZPOCZĘCIE DZIAŁANIA PROGRAMU"
+        self.log_contents:str = f"\
+            ROZPOCZĘCIE DZIAŁANIA PROGRAMU\n\
+            PLIK WEJŚCIOWY:\t{os.path.basename(file_in)}\n\
+            FOLDER:\t\t{folder}\n\
+            PLIK SUKCESU:\t{self.file_out_success}\n\
+            PLIK BŁEDU:\t{self.file_out_error}"
 
     def exit(self) -> None:
         if self.result_success:
@@ -30,4 +35,4 @@ class program:
             file_to_save:str = self.file_out_error
 
         save_logs(self.log_contents)
-        save_any(file_to_save, "Na razie program nic nie robi, ale proszę dać mi trochę czasu ;-)")
+        save_any(file_to_save, f"Program działał w {self.folder}\nPlik wejściowy: {self.file_in}")
