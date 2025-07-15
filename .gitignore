@@ -8,3 +8,9 @@ Meet_27-06/
 *.reg
 *.bat
 icon.png
+
+/build
+/dist
+
+*.spec
+*.exe
