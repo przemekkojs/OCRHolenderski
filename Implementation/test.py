@@ -1,6 +1,7 @@
 from ocr.ocr_reader import ocr
 from standarizer.standarizer import process_image_file
 from logger import log
+from paths import *
 
 import os
 
@@ -34,7 +35,7 @@ def __test_one_file(debug:bool=False) -> None:
     result = OCR.read_full_list(f"{__out_files_dir}/20250601_133903.png")                        
     __stats(result, debug)
 
-def __test_all(debug:bool=False):
+def __test_all(debug:bool=False) -> None:
     count:int = 0
     sum:float = 0
 
@@ -62,7 +63,7 @@ def __test_all(debug:bool=False):
 
     print("ŚREDNIA DOKŁADNOŚĆ ZE WSZYSTKICH:", avg_acc)
 
-def __test_text(debug:bool=False):
+def __test_text(debug:bool=False) -> None:
     process_image_file(
         image_path=f"{__test_files_dir}/20250601_133903.jpg",
         output_path=f"{__out_files_dir}/20250601_133903.png",
@@ -71,20 +72,44 @@ def __test_text(debug:bool=False):
     result = OCR.read_text_only(f"{__out_files_dir}/20250601_133903.png")
     print(result)
 
-def __info_simple():
+def __info_simple() -> None:
     log("This is some info")
 
-def __warning_simple():
+def __warning_simple() -> None:
     log("This is some warning", level=1)
 
-def __error_simple():
+def __error_simple() -> None:
     log("This is some error", level=2)
 
-if __name__ == '__main__':
+def __create_files_in_paths() -> None:
+    file_name:str = "test.txt"
+    tmp_path:str = f"{TMP_FOLDER}/{file_name}"
+    prefs_path:str = f"{PREFS_FOLDER}/{file_name}"
+
+    message:str = "Szybki test, czy zapisywanie działa"
+
+    os.makedirs(os.path.dirname(tmp_path), exist_ok=True)
+    os.makedirs(os.path.dirname(prefs_path), exist_ok=True)
+
+    with open(tmp_path, 'w', encoding='utf-8') as file:
+        file.write(message)
+
+    with open(prefs_path, 'w', encoding='utf-8') as file:
+        file.write(message)
+
+def __log_error_to_file() -> None:
+    log("Jakiś błąd", 2, save_logs)
+
+if __name__ == '__main__':    
     # __test_one_file()
     # __test_all()
     # __test_text()
 
-    __info_simple()
-    __warning_simple()
-    __error_simple()
+    # __info_simple()
+    # __warning_simple()
+    # __error_simple()
+
+    #__create_files_in_paths()
+    __log_error_to_file()
+
+    pass
