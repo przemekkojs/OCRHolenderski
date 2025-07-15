@@ -9,8 +9,8 @@ Meet_27-06/
 *.bat
 icon.png
 
-/build
-/dist
+Implementation/build
+Implementation/dist
 
 *.spec
 *.exe
