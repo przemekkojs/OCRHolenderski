@@ -1,15 +1,21 @@
 from languages import check_if_language_exists
+from libretranslatepy import LibreTranslateAPI
 
 # Wsm to zaimplementować i reszta działa
-def translate_word(what:str, lang_from:str, lang_to:str='pl') -> str:
+def translate_word(what:str, lang_from:str, lang_to:str='pl', debug:bool=False) -> str:
     if what == "":
         return ""
 
     if not check_if_language_exists(lang_from):
-        raise ValueError(f"Language {lang_from} is not supported")
+        raise ValueError(f"Language {lang_from} is not supported")    
 
-    print(f"Tłumaczenie {what} z >> {lang_from} << na >> {lang_to} <<")
-    return "TODO"
+    if debug:
+        print(f"Tłumaczenie {what} z >> {lang_from} << na >> {lang_to} <<")
+
+    lt = LibreTranslateAPI("https://libretranslate.de/")
+    result:str = lt.translate(what, lang_from, lang_to)
+
+    return result
 
 def translate(input: dict[str, list[list, str]], lang_from:str, lang_to:str='pl') -> None:
     keys = input.keys()
@@ -29,3 +35,6 @@ def translate_word_list(input: list[str], lang_from:str, lang_to:str='pl') -> li
         result.append(translated_word)
 
     return result
+
+
+translate_word('Goede avond', 'nl', 'pl')
