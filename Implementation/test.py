@@ -100,7 +100,7 @@ def __create_files_in_paths() -> None:
 def __log_error_to_file() -> None:
     log("Jakiś błąd", 2, save_logs)
 
-if __name__ == '__main__':    
+if __name__ == '__main__':
     # __test_one_file()
     # __test_all()
     # __test_text()
@@ -110,6 +110,6 @@ if __name__ == '__main__':
     # __error_simple()
 
     #__create_files_in_paths()
-    __log_error_to_file()
+    #__log_error_to_file()
 
     pass

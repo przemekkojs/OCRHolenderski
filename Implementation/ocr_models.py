@@ -1,6 +1,6 @@
 from easyocr import Reader
 
-from Implementation.languages import SUPPORTED_LANGUAGES
+from languages import SUPPORTED_LANGUAGES
 
 class __ocr_models:
     def __init__(self):

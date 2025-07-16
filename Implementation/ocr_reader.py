@@ -1,6 +1,6 @@
 from easyocr import Reader
 
-from Implementation.languages import check_if_language_exists
+from languages import check_if_language_exists
 from ocr_models import ocr_models
 
 class ocr:
@@ -23,7 +23,7 @@ class ocr:
         for item in extracted:
             word:str = item[1].strip()
             text += f"{word} "
-        
+
         text = text.strip()
         return text
     
