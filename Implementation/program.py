@@ -1,15 +1,17 @@
 import os
+import sys
 
 from ocr_reader import ocr
 from standarizer import process_image_file
 from translator import translate
 from paths import save_prefs, save_tmp, save_logs, save_any
+from formatter import format_for_translation
 
 class program:
     def __init__(self, file_in:str, debug:bool=False):
         self.file_in:str = file_in
         self.debug:bool = debug
-        self.ocr:ocr = ocr('nl')
+        self.ocr:ocr = ocr('nl', debug)
 
         file_no_ext:str = os.path.basename(file_in).split('.')[0]
         file_succ_name:str = f"{file_no_ext}.docx"
@@ -21,16 +23,21 @@ class program:
         self.file_out_error:str = os.path.join(folder, file_err_name)
 
         self.result_success:bool = False
-        self.log_contents:str = f"\
-            ROZPOCZĘCIE DZIAŁANIA PROGRAMU\n\
-            PLIK WEJŚCIOWY:\t{os.path.basename(file_in)}\n\
-            FOLDER:\t\t{folder}\n\
-            PLIK SUKCESU:\t{self.file_out_success}\n\
-            PLIK BŁEDU:\t{self.file_out_error}"
+        self.log_contents:str = f"ROZPOCZĘCIE DZIAŁANIA PROGRAMU\nPLIK WEJŚCIOWY:\t{os.path.basename(file_in)}\nFOLDER:\t\t{folder}\nPLIK SUKCESU:\t{self.file_out_success}\nPLIK BŁEDU:\t{self.file_out_error}"
         
     def __extract_text(self) -> None:
         self.log_contents += "\n\nROZPOCZĘCIE EKSTRAKCJI TEKSTU"
-        self.log_contents += "\nEKSTRAKCJA TEKSTU ZAKOŃCZONA POWODZENIEM"
+
+        try:
+            points_words:list[tuple[list, str]] = self.ocr.read_points_and_words(self.file_in)
+            self.log_contents += "\nEKSTRAKCJA TEKSTU ZAKOŃCZONA POWODZENIEM"
+
+            return format_for_translation(points_words)
+        except Exception as e:
+            details:str = str(e)
+            self.log_contents += f"\n{details}"
+            self.log_contents += "\nEKSTRAKCJA TEKSTU ZAKOŃCZONA NIEPOWODZENIEM"
+            self.exit()
 
     def __translate(self) -> None:
         self.log_contents += "\n\nROZPOCZĘCIE TŁUMACZENIA TEKSTU"
@@ -60,3 +67,6 @@ class program:
 
         save_logs(self.log_contents)
         save_any(file_to_save, f"Program działał w {self.folder}\nPlik wejściowy: {self.file_in}")
+
+        sys.exit(-1)
+

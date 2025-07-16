@@ -83,8 +83,8 @@ def __error_simple() -> None:
 
 def __create_files_in_paths() -> None:
     file_name:str = "test.txt"
-    tmp_path:str = f"{TMP_FOLDER}/{file_name}"
-    prefs_path:str = f"{PREFS_FOLDER}/{file_name}"
+    tmp_path:str = f"{load_path('TMP_FOLDER')}/{file_name}"
+    prefs_path:str = f"{load_path('PREFS_FOLDER')}/{file_name}"
 
     message:str = "Szybki test, czy zapisywanie działa"
 

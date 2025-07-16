@@ -3,10 +3,13 @@ from docx import Document
 from typing import overload
 
 import os
+import json
 
-TMP_FOLDER:str = "C:/Users/Public/Documents/Translator/tmp"
-PREFS_FOLDER:str = "C:/Users/Public/Documents/Translator/prefs"
-LOGS_FOLDER:str = "C:/Users/Public/Documents/Translator/logs"
+def load_path(key:str) -> None:
+    with open("paths.json", "r", encoding="utf-8") as f:
+        config = json.load(f)
+
+    return os.path.normpath(config[key])
 
 def __save(path:str, file_name:str, contents, debug:bool=False) -> None:
     full_path:str = os.path.join(path, file_name)
@@ -52,10 +55,10 @@ def save_any(*args):
 
 def save_logs(contents) -> None:
     now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    __save(LOGS_FOLDER, f"{now}.log", contents)
+    __save(load_path("LOGS_FOLDER"), f"{now}.log", contents)
 
 def save_tmp(file_name:str, contents) -> None:
-    __save(TMP_FOLDER, file_name, contents)
+    __save(load_path("TMP_FOLDER"), file_name, contents)
 
 def save_prefs(file_name:str, contents) -> None:
-    __save(PREFS_FOLDER, file_name, contents)
+    __save(load_path("PREFS_FOLDER"), file_name, contents)

@@ -4,11 +4,13 @@ from languages import check_if_language_exists
 from ocr_models import ocr_models
 
 class ocr:
-    def __init__(self, language:str):
+    def __init__(self, language:str, debug:bool=False):
         if not check_if_language_exists(language):
             raise ValueError(f"Language {language} is not supported")
-
-        self.reader:Reader = ocr_models[language]
+        
+        self.models = ocr_models(debug)
+        self.debug:bool = debug
+        self.reader:Reader = self.models[language]
 
     def __get_contents(self, file:str) -> (list | list[dict[str, ]] | list[str] | list[list]):
         return self.reader.readtext(file)
