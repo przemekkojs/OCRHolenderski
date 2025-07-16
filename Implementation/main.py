@@ -2,21 +2,24 @@ import sys
 import os
 
 from program import program
+from paths import save_logs
 
-if __name__ == '__main__':
-    if len(sys.argv) != 2:
-        print("Nieprawidłowa liczba argumentów wywołania programu")
-        sys.exit(-1)
+def __check(cond:bool, msg:str, code:int=-1) -> None:
+    if cond:
+        save_logs(msg)
+        sys.exit(code)
 
-    file_name:str = sys.argv[1]
+def run(args:list[str], debug:bool=False) -> None:
+    __check(len(args) != 2, "Nieprawidłowa liczba argumentów wywołania programu")
+
+    file_name:str = args[1]
     cur_dir:str = os.getcwd()
     full_path:str = os.path.join(cur_dir, file_name)
 
-    print("full_path:", full_path)
-
-    if not os.path.exists(full_path):
-        print("Plik nie istnieje")
-        sys.exit(-1)
+    __check(not os.path.exists(full_path), "Plik nie istnieje")
 
     p = program(file_in=full_path)
     p.exit()
+
+if __name__ == '__main__':
+    run(sys.argv)

@@ -1,4 +1,4 @@
-from languages.languages import check_if_language_exists
+from Implementation.languages import check_if_language_exists
 
 def translate(what:str, lang_from:str, lang_to:str='pl') -> str:
     if not check_if_language_exists(lang_from):

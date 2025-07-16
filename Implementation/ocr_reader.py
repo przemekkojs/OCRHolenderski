@@ -1,7 +1,7 @@
 from easyocr import Reader
 
-from languages.languages import check_if_language_exists
-from ocr.ocr_models import ocr_models
+from Implementation.languages import check_if_language_exists
+from ocr_models import ocr_models
 
 class ocr:
     def __init__(self, language:str):
@@ -10,7 +10,7 @@ class ocr:
 
         self.reader:Reader = ocr_models[language]
 
-    def __get_contents(self, file:str) -> list:
+    def __get_contents(self, file:str) -> (list | list[dict[str, ]] | list[str] | list[list]):
         return self.reader.readtext(file)
         
     def read_full_list(self, file:str) -> list:
@@ -47,4 +47,3 @@ class ocr:
             result.append((points, word))
         
         return result
-

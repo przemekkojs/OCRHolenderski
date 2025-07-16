@@ -1,5 +1,5 @@
-from ocr.ocr_reader import ocr
-from standarizer.standarizer import process_image_file
+from ocr_reader import ocr
+from Implementation.standarizer import process_image_file
 from logger import log
 from paths import *
 

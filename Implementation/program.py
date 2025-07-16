@@ -1,8 +1,8 @@
 import os
 
-from ocr.ocr_reader import ocr
-from standarizer.standarizer import process_image_file
-from translator.translator import translate
+from ocr_reader import ocr
+from Implementation.standarizer import process_image_file
+from Implementation.translator import translate
 from paths import save_prefs, save_tmp, save_logs, save_any
 
 class program:

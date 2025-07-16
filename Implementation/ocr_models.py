@@ -1,6 +1,6 @@
 from easyocr import Reader
 
-from languages.languages import SUPPORTED_LANGUAGES
+from Implementation.languages import SUPPORTED_LANGUAGES
 
 class __ocr_models:
     def __init__(self):
@@ -19,9 +19,12 @@ class __ocr_models:
         self.__models[key] = value
 
 
-def __init_models():
+def __init_models(debug:bool=True):
     for language in SUPPORTED_LANGUAGES:
         ocr_models[language] = Reader([language], gpu=True)
+
+        if debug:
+            print(f"Zainicjowano model >> {language} <<")
 
 ocr_models = __ocr_models()
 __init_models()
