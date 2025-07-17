@@ -7,6 +7,7 @@ from standarizer import process_image_file
 from translator import translate
 from paths import save_prefs, save_tmp, save_logs, save_any, load_path
 from formatter import format_for_translation
+from document import create_document
 
 class program:
     def __init__(self, file_in:str, debug:bool=False):
@@ -38,7 +39,7 @@ class program:
 
             save_tmp(path_out, "")
             process_image_file(self.file_in, path_out, debug=self.debug)
-            
+
             points_words:list[list[list | str]] = self.ocr.read_points_and_words(path_out)
 
             self.log_contents += "\nEKSTRAKCJA TEKSTU ZAKOŃCZONA POWODZENIEM"
@@ -52,18 +53,33 @@ class program:
     # Tutaj trzeba zmienić NL i PL na parametry
     def __translate(self) -> None:
         self.log_contents += "\n\nROZPOCZĘCIE TŁUMACZENIA TEKSTU"
+        
+        try:
+            asyncio.run(translate(self.contents, 'nl', 'pl'))
 
-        asyncio.run(translate(self.contents, 'nl', 'pl'))
+            for row in self.contents:
+                print(row[0], '=>', row[2])
 
-        for row in self.contents:
-            print(row[0], '=>', row[2])
-
-        self.log_contents += "\nTŁUMACZENIE ZAKOŃCZONE POWODZENIEM"
+            self.log_contents += "\nTŁUMACZENIE ZAKOŃCZONE POWODZENIEM"
+        except Exception as e:
+            details:str = str(e)
+            self.log_contents += f"\n{details}"
+            self.log_contents += "\nTŁUMACZENIE ZAKOŃCZONE NIEPOWODZENIEM"
+            self.exit()
 
     def __create_document(self) -> None:
         self.log_contents += "\n\nROZPOCZĘCIE TWORZENIA DOKUMENTU"
-        self.log_contents += f"\nŚCIEŻKA DO DOKUMENTU: {'C:/Tu/Dać/Ściezkę'}"
-        self.log_contents += "\nTWORZENIE DOKUMENTU ZAKOŃCZONE POWODZENIEM"
+
+        try:
+            create_document(self.contents, self.file_out_success)
+
+            self.log_contents += f"\nŚCIEŻKA DO DOKUMENTU: {self.file_out_success}"
+            self.log_contents += "\nTWORZENIE DOKUMENTU ZAKOŃCZONE POWODZENIEM"
+        except Exception as e:
+            details:str = str(e)
+            self.log_contents += f"\n{details}"
+            self.log_contents += "\nTWORZENIE DOKUMENTU ZAKOŃCZONE NIEPOWODZENIEM"
+            self.exit()
 
     # To trzeba jakoś fajnie zrobić
     def run(self) -> None:
@@ -79,6 +95,7 @@ class program:
             self.log_contents += "\nDZIAŁANIE PROGRAMU ZAKONCZONE POWODZENIEM"
             file_to_save:str = self.file_out_success
         else:
+            self.log_contents += f"\nPLIK BŁĘDU: {self.file_out_error}"
             self.log_contents += "\nDZIAŁANIE PROGRAMU ZAKONCZONE NIEPOWODZENIEM"
             file_to_save:str = self.file_out_error
 
