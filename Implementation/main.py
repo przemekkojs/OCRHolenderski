@@ -2,7 +2,7 @@ import sys
 import os
 
 from program import program
-from paths import save_logs, load_path
+from paths import save_logs
 
 def __check(cond:bool, msg:str, code:int=-1, debug:bool=False) -> None:
     if cond:

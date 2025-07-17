@@ -1,8 +1,10 @@
+import asyncio
+
 from languages import check_if_language_exists
-from libretranslatepy import LibreTranslateAPI
+from googletrans import Translator
 
 # Wsm to zaimplementować i reszta działa
-def translate_word(what:str, lang_from:str, lang_to:str='pl', debug:bool=False) -> str:
+async def translate_word(what:str, lang_from:str, lang_to:str='pl', debug:bool=False) -> str:
     if what == "":
         return ""
 
@@ -12,29 +14,25 @@ def translate_word(what:str, lang_from:str, lang_to:str='pl', debug:bool=False) 
     if debug:
         print(f"Tłumaczenie {what} z >> {lang_from} << na >> {lang_to} <<")
 
-    lt = LibreTranslateAPI("https://libretranslate.de/")
-    result:str = lt.translate(what, lang_from, lang_to)
+    translator = Translator()
+    result = await translator.translate(what, dest=lang_to, src=lang_from)
 
-    return result
+    return result.text
 
-def translate(input: dict[str, list[list, str]], lang_from:str, lang_to:str='pl') -> None:
-    keys = input.keys()
+async def translate(input: list[list[str | list]], lang_from:str, lang_to:str='pl') -> None:
+    tasks:list = []
 
-    for key in keys:
-        tpl:tuple[list, str] = input[key]
-        word:str = tpl[1]
-        translated_word:str = translate_word(word, lang_from, lang_to)
-        translated_word = "NIEPOWODZENIE" if translated_word == "" else translated_word
-        input[key][1] = translated_word
+    for row in input:
+        word = row[0]
+        tasks.append(translate_word(word, lang_from, lang_to))
 
-def translate_word_list(input: list[str], lang_from:str, lang_to:str='pl') -> list[str]:
-    result:list[str] = []
+    results: list[str | Exception] = await asyncio.gather(*tasks, return_exceptions=True)
 
-    for word in input:
-        translated_word:str = translate_word(word, lang_from, lang_to)
-        result.append(translated_word)
+    for index in range(len(results)):
+        result = results[index]
+        current:list[str | list] = input[index]
 
-    return result
-
-
-translate_word('Goede avond', 'nl', 'pl')
+        if isinstance(result, Exception):
+            current.append("NIEPOWODZENIE")
+        else:
+            current.append(result)

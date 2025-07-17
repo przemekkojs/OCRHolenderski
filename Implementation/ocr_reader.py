@@ -12,10 +12,10 @@ class ocr:
         self.debug:bool = debug
         self.reader:Reader = self.models[language]
 
-    def __get_contents(self, file:str) -> (list | list[dict[str, ]] | list[str] | list[list]):
+    def __get_contents(self, file:str) -> list[dict[str, ] | str | list]:
         return self.reader.readtext(file)
         
-    def read_full_list(self, file:str) -> list:
+    def read_full_list(self, file:str) -> list[dict[str, ] | str | list]:
         return self.__get_contents(file)
     
     def read_text_only(self, file:str) -> str:
@@ -28,7 +28,7 @@ class ocr:
 
         text = text.strip()
         return text
-    
+
     def read_words_list(self, file:str) -> list[str]:
         extracted = self.__get_contents(file)
         result:list[str] = []
@@ -39,13 +39,13 @@ class ocr:
         
         return result
 
-    def read_points_and_words(self, file:str) -> list[tuple[list, str]]:
+    def read_points_and_words(self, file:str) -> list[list[list | str]]:
         extracted = self.__get_contents(file)
-        result:list[list, str] = []
+        result:list[list | str] = []
 
         for item in extracted:
             points:list = item[0]
             word:str = item[1].strip()
-            result.append((points, word))
+            result.append([word, points])
         
         return result
