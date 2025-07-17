@@ -13,21 +13,7 @@ class ocr_models:
             self.__models[language] = Reader([language], gpu=True)
 
             if debug:
-                print(f"Zainicjowano model >> {language} <<")
-
-            language_path:str = os.path.join(load_path("DICT_FOLDER"), f"{language}.json")
-            
-            if not os.path.exists(language_path):
-                path:str = os.path.dirname(language_path)
-                os.mkdir(path)
-
-                with open(language_path, 'w', encoding='utf-8') as file:
-                    pass
-
-                if debug:
-                    print(f'Utworzono plik słownika >> {language_path} <<')
-            elif debug:
-                print(f'Plik słownika >> {language_path} << już istnieje')
+                print(f"Zainicjowano model >> {language} <<")            
 
     def __getitem__(self, key:str) -> Reader:
         keys = self.__models.keys()
