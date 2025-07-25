@@ -8,6 +8,7 @@ from translator import translate
 from paths import save_prefs, save_tmp, save_logs, save_any, load_path
 from formatter import format_for_translation
 from document import create_document
+from languages import check_if_language_exists
 
 class program:
     def __init__(self, file_in:str, debug:bool=False):
@@ -30,7 +31,7 @@ class program:
         self.log_contents:str = f"ROZPOCZĘCIE DZIAŁANIA PROGRAMU\nPLIK WEJŚCIOWY:\t{os.path.basename(file_in)}\nFOLDER:\t\t{folder}\nPLIK SUKCESU:\t{self.file_out_success}\nPLIK BŁEDU:\t{self.file_out_error}"
         
     def __extract_text(self) -> None:
-        self.log_contents += "\n\nROZPOCZĘCIE EKSTRAKCJI TEKSTU"
+        self.log_contents += "\n\nROZPOCZĘCIE EKSTRAKCJI TEKSTU"        
 
         try:
             base_name:str = os.path.basename(self.file_in)
@@ -51,12 +52,15 @@ class program:
             self.exit()
 
     # Tutaj trzeba zmienić NL i PL na parametry
-    def __translate(self) -> None:
+    def __translate(self, lang_from:str, lang_to:str='pl') -> None:
         self.log_contents += "\n\nROZPOCZĘCIE TŁUMACZENIA TEKSTU"
-        
-        try:
-            asyncio.run(translate(self.contents, 'nl', 'pl'))
 
+        if not check_if_language_exists(lang_from):
+            raise ValueError(f'Nieprawidłowy język źródłowy >> {lang_from} <<')
+                
+        try:
+            asyncio.run(translate(self.contents, lang_from=lang_from, lang_to=lang_to))
+            
             for row in self.contents:
                 print(row[0], '=>', row[2])
 
@@ -82,9 +86,9 @@ class program:
             self.exit()
 
     # To trzeba jakoś fajnie zrobić
-    def run(self) -> None:
+    def run(self, lang_from:str, lang_to:str='pl') -> None:
         self.__extract_text()
-        self.__translate()
+        self.__translate(lang_from, lang_to)
         self.__create_document()
 
         self.result_success = True
@@ -98,9 +102,7 @@ class program:
             self.log_contents += f"\nPLIK BŁĘDU: {self.file_out_error}"
             self.log_contents += "\nDZIAŁANIE PROGRAMU ZAKONCZONE NIEPOWODZENIEM"
             file_to_save:str = self.file_out_error
+            save_any(file_to_save, f"Program działał w {self.folder}\nPlik wejściowy: {self.file_in}")
 
         save_logs(self.log_contents)
-        save_any(file_to_save, f"Program działał w {self.folder}\nPlik wejściowy: {self.file_in}")
-
         sys.exit(-1)
-

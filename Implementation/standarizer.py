@@ -40,11 +40,11 @@ def __window(name:str, size:tuple[int, int], file) -> None:
     cv2.resizeWindow(name, size[0], size[1])
     cv2.imshow(name, file) 
 
-def process_image_file(image_path:str, output_path:str, output_size:tuple[int, int]=(1240, 1754), debug:bool=False):
+def process_image_file(image_path:str, output_path:str, output_size:tuple[int, int]=(1240, 1754), debug:bool=False, show_images:bool=False):
     image = cv2.imread(image_path)
     orig = image.copy()
     
-    if debug:
+    if debug and show_images:
         __window("Orig", (1240, 1754), orig)
         cv2.waitKey(0)
 
@@ -55,7 +55,7 @@ def process_image_file(image_path:str, output_path:str, output_size:tuple[int, i
     contours, _ = cv2.findContours(gray, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
     contours = sorted(contours, key=cv2.contourArea, reverse=True)
 
-    if debug:
+    if debug and show_images:
         __window("Image", (1240, 1754), image)
         cv2.waitKey(0)
         __window("Gray", (1240, 1754), gray)
@@ -72,10 +72,11 @@ def process_image_file(image_path:str, output_path:str, output_size:tuple[int, i
             break
     
     if debug:
-        if document_contour is not None:            
-            cv2.drawContours(orig, [document_contour], -1, (0, 255, 0), 3)
-            __window("Contours", (1240, 1754), orig)
-            cv2.waitKey(0)
+        if document_contour is not None:
+            if show_images:    
+                cv2.drawContours(orig, [document_contour], -1, (0, 255, 0), 3)
+                __window("Contours", (1240, 1754), orig)
+                cv2.waitKey(0)
         else:
             print("Nie znaleziono konturu o 4 narożnikach.")
 
@@ -105,12 +106,14 @@ def process_image_file(image_path:str, output_path:str, output_size:tuple[int, i
     sharpen_kernel = np.array([[0, -1, 0], [-1, 5, -1], [0, -1, 0]])
     sharpened = cv2.filter2D(warped, -1, sharpen_kernel)
     enhanced = cv2.convertScaleAbs(sharpened, alpha=1.3, beta=15)
-    standardized = cv2.resize(enhanced, output_size, interpolation=cv2.INTER_CUBIC)
+    standardized = cv2.resize(src=enhanced, dsize=output_size, interpolation=cv2.INTER_CUBIC)
     cv2.imwrite(output_path, standardized)
 
     if debug:
-        __window("Standardized", (1240, 1754), standardized)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
+        if show_images:
+            __window("Standardized", (1240, 1754), standardized)
+            cv2.waitKey(0)
+            cv2.destroyAllWindows()
+            
         print(f"Zapisano plik: >> {output_path} <<")
     

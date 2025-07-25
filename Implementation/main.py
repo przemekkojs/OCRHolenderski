@@ -26,7 +26,7 @@ def run(args:list[str], debug:bool=False) -> None:
     __check(not os.path.exists(full_path), f"Plik >> {full_path} << nie istnieje", debug=debug)
 
     p = program(file_in=full_path, debug=debug)
-    p.run()
+    p.run(lang_from='nl', lang_to='pl')
 
 if __name__ == '__main__':
     run(['main.py', 'Implementation\\img\\test.jpg'], debug=True)
