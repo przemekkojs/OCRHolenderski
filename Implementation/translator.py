@@ -72,7 +72,8 @@ async def translate(input: list[list[str | list]], lang_from:str, lang_to:str='p
 
     for row in input:
         word = row[0]
-        tasks.append(__translate_word_model(word, lang_from, buffer=__translation_buffer, lang_to=lang_to))
+        translation_func = __translate_word_model if translation_mode == 'model' else __translate_word
+        tasks.append(translation_func(word, lang_from, buffer=__translation_buffer, lang_to=lang_to))
 
     results: list[str | Exception] = await asyncio.gather(*tasks, return_exceptions=True)
 

@@ -14,8 +14,6 @@ def coordinates_to_lines(input: (list[tuple[list, str, str]] | list[list[list | 
     sorted_input:list[list[list | str]] = []
     result:list[list[str | str | tuple[int, int, int]]] = []
 
-    print("Input length", len(input)) ##################################################
-
     for line in input:
         coords_raw:list = line[1]
         x_1:int = coords_raw[0][0]
@@ -36,8 +34,6 @@ def coordinates_to_lines(input: (list[tuple[list, str, str]] | list[list[list | 
         sorted_input.append([coords_list, line[0], line[2]])
 
     sorted_input.sort(key=lambda x: (x[0][2], x[0][0]))
-
-    print("Sorted length", len(sorted_input)) ##################################################
 
     last_line:(list[list | str] | None) = None
     line_changed:bool = False
@@ -65,9 +61,6 @@ def coordinates_to_lines(input: (list[tuple[list, str, str]] | list[list[list | 
             cur_y_min:int = current_coords[2]
             last_y_max:int = last_coords[3]
 
-            if debug:
-                print(cur_y_min, last_y_max)
-
             if cur_y_min >= last_y_max:
                 buffer = prev_y_index + 1
                 line_changed = True
@@ -75,54 +68,29 @@ def coordinates_to_lines(input: (list[tuple[list, str, str]] | list[list[list | 
                 buffer = prev_y_index
         
         current_y_index:int = buffer
-        current_x_index:int = 0 if (prev_y_index != current_y_index or last_result_line == None) else (last_result_line[2][1] + 1)
-        font_size:int = __detect_font_size(debug=debug)
+        current_x_index:int = sorted_input[index][0][0] #0 if (prev_y_index != current_y_index or last_result_line == None) else (last_result_line[2][1] + 1)
+        font_size:int = __detect_font_size(debug)
         word:str = current_line[1]
         translation:str = current_line[2]
         to_append:list[str | str | tuple[int, int, int]] = [word, translation, (current_y_index, current_x_index, font_size)]
         result.append(to_append)
 
-        if debug:
-            print(to_append)
-            print()
+    result.sort(key=lambda x: (x[2][0], x[2][1]))
 
     if debug:
         print('\n========================================\n')
+
+        for line in sorted_input:
+            print(line)
+
+        print()
 
         for line in result:
             print(line)
 
         print()
-
-    print("Result length", len(result)) ##################################################
+        print("Input length", len(input))
+        print("Sorted length", len(sorted_input))
+        print("Result length", len(result))
 
     return result
-
-
-
-
-# ==========================
-# === DO WYWALENIA POTEM ===
-# ==========================
-
-def __test():
-    test_data = [
-        ['VERKOOPFACTUUR', [[654, 114], [717, 114], [717, 191], [654, 191]], 'Faktura sprzedaży'],
-        ['FACTUUR DATUM', [[114, 213], [428, 213], [428, 509], [114, 509]], 'Data faktury'],
-        ['KLANTGEGEVENS', [[363, 464], [806, 464], [806, 891], [363, 891]], 'Dane klienta'],
-        ['FACTUURNUMMER', [[469, 558], [692, 558], [692, 772], [469, 772]], 'Numer faktury'],
-        ['BETALINGSTERMIJN', [[14, 122], [171, 122], [171, 250], [14, 250]], 'Termin płatności'],
-        ['PRODUCTOMSCHRIJVING', [[490, 576], [26, 576], [26, 104], [490, 104]], 'Opis produktu'],
-        ['TOTAALBEDRAG', [[665, 728], [963, 728], [963, 1022], [665, 1022]], 'Kwota całkowita'],
-        ['TOTAALBEDRAG', [[10, 120], [963, 120], [963, 1022], [10, 1022]], 'Kwota całkowita'],
-        ['TOTAALBEDRAG', [[160, 250], [963, 250], [963, 1022], [160, 1022]], 'Kwota całkowita'],
-        ['BTW', [[299, 344], [277, 344], [277, 344], [299, 344]], 'VAT'],
-        ['FACTUURADRES', [[167, 264], [46, 264], [46, 122], [167, 122]], 'Adres faktury'],
-        ['VERVALDATUM', [[98, 186], [1003, 186], [1003, 1070], [98, 1070]], 'Data wygaśnięcia']
-    ]
-
-    coordinates_to_lines(test_data, debug=True)
-
-if __name__ == '__main__':
-    pass
-    # __test()

@@ -9,7 +9,7 @@ def create_document(contents:list[list[str | list]], output_path:str, debug:bool
 
     lines = coordinates_to_lines(contents, debug)
 
-    doc = Document(output_path) if os.path.exists(output_path) else Document()
+    doc = Document() #Document(output_path) if os.path.exists(output_path) else Document()
 
     last_y:int = 0
     last_x:int = 0

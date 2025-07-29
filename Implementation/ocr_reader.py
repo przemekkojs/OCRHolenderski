@@ -2,6 +2,7 @@ from easyocr import Reader
 
 from languages import check_if_language_exists
 from ocr_models import ocr_models
+from utils import draw_bounding_boxes
 
 class ocr:
     def __init__(self, language:str, debug:bool=False):
@@ -13,7 +14,13 @@ class ocr:
         self.reader:Reader = self.models[language]
 
     def __get_contents(self, file:str) -> list[dict[str, ] | str | list]:
-        return self.reader.readtext(file)
+        detail_level:int = 3 if self.debug else 1
+        contents = self.reader.readtext(file, detail=detail_level, text_threshold=0.3)
+
+        if self.debug:
+            draw_bounding_boxes(file, contents)
+
+        return contents
         
     def read_full_list(self, file:str) -> list[dict[str, ] | str | list]:
         return self.__get_contents(file)

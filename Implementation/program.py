@@ -75,7 +75,7 @@ class program:
         self.log_contents += "\n\nROZPOCZĘCIE TWORZENIA DOKUMENTU"
 
         try:
-            create_document(self.contents, self.file_out_success)
+            create_document(self.contents, self.file_out_success, self.debug)
 
             self.log_contents += f"\nŚCIEŻKA DO DOKUMENTU: {self.file_out_success}"
             self.log_contents += "\nTWORZENIE DOKUMENTU ZAKOŃCZONE POWODZENIEM"
