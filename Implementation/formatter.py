@@ -1,8 +1,25 @@
 from collections import defaultdict
 
-# TODO
-def __detect_font_size(debug:bool=False) -> int:
-    return 14
+
+def __fibonacci(n:int):
+    a, b = 0, 1
+
+    for _ in range(n):
+        a, b = b, a + b
+
+    return a
+
+def __detect_font_size(rect:list[int], debug:bool=False) -> int:
+    y_min:int = rect[2]
+    y_max:int = rect[3]
+    diff:int = abs(y_max - y_min)
+    bucket:int = int(diff / 10)
+    result:int = __fibonacci(bucket + 5) - 2
+
+    if debug:
+        print(f'Wykryto rozmiar czcionki między [{y_min}, {y_max}]: {diff}, {bucket}, rozmiar: {result}')
+
+    return result
 
 def __prepare_for_processing(input_data, debug: bool = False):
     sorted_input = []
@@ -29,7 +46,7 @@ def __prepare_for_processing(input_data, debug: bool = False):
 def __create_layout(sorted_input, debug: bool = False):
     result_tmp = []
     last_line = None
-    line_changed = False
+    line_changed:bool = False
 
     for index, current_line in enumerate(sorted_input):
         if index == 1:
@@ -55,9 +72,14 @@ def __create_layout(sorted_input, debug: bool = False):
             else:
                 buffer = prev_y_index
 
-        font_size = __detect_font_size(debug)
-        current_y_index = buffer
-        current_x_index = current_line[0][0]
+        font_size:int = __detect_font_size(current_line[0], debug)
+        last_font_size:int = font_size if last_result_line is None else last_result_line[2][2]
+
+        if font_size != last_font_size and buffer == prev_y_index:
+            buffer += 1
+
+        current_y_index:int = buffer
+        current_x_index:int = current_line[0][0]
 
         word = current_line[1]
         translation = current_line[2]

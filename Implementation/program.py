@@ -29,7 +29,14 @@ class program:
 
         self.result_success:bool = False
         self.log_contents:str = f"ROZPOCZĘCIE DZIAŁANIA PROGRAMU\nPLIK WEJŚCIOWY:\t{os.path.basename(file_in)}\nFOLDER:\t\t{folder}\nPLIK SUKCESU:\t{self.file_out_success}\nPLIK BŁEDU:\t{self.file_out_error}"
-        
+    
+    def __check_for_ms_word_instance(self) -> bool:
+        file_no_ext:str = os.path.basename(self.file_in).split('.')[0]
+        filename:str = f"{file_no_ext}.docx"
+        path:str = os.path.join(self.folder, f"~${filename}")
+
+        return os.path.exists(path)
+
     def __extract_text(self) -> None:
         self.log_contents += "\n\nROZPOCZĘCIE EKSTRAKCJI TEKSTU"        
 
@@ -87,6 +94,20 @@ class program:
 
     # To trzeba jakoś fajnie zrobić
     def run(self, lang_from:str, lang_to:str='pl') -> None:
+        flag:bool = False
+
+        if self.__check_for_ms_word_instance():
+            if self.debug:
+                print("WYKRYTO OTWARTY PROGRAM MS WORD - OCZEKIWANIE NA ZAMKNIĘCIE")
+            flag = True
+
+        while self.__check_for_ms_word_instance():
+            continue
+
+        if flag:
+            if self.debug:
+                print("WYKRYTO ZAMKNIĘCIE PROGRAMU MS WORD - PROGRAM ZOSTANIE URUCHOMIONY")
+
         self.__extract_text()
         self.__translate(lang_from, lang_to)
         self.__create_document()
