@@ -28,7 +28,7 @@ def create_document(contents:list[list[str | list]], output_path:str, debug:bool
             buffer = translated
         else:
             if buffer != "" and cur_x != last_x:
-                buffer += '\t'
+                buffer += '\t\t'
             
             buffer += translated
 
