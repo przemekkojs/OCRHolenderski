@@ -2,6 +2,9 @@ import os
 import sys
 import asyncio
 
+import tkinter as tk
+from tkinter import messagebox
+
 from ocr_reader import ocr
 from standarizer import process_image_file
 from translator import translate
@@ -126,4 +129,14 @@ class program:
             save_any(file_to_save, f"Program działał w {self.folder}\nPlik wejściowy: {self.file_in}")
 
         save_logs(self.log_contents)
+
+        # MESSAGE BOX
+        root = tk.Tk()
+        root.withdraw()
+
+        if self.result_success:
+            messagebox.showinfo("Sukces", "Działanie programu zakończone powodzeniem.")
+        else:
+            messagebox.showerror("Błąd", "Działanie programu zakończone niepowodzeniem.")
+
         sys.exit(-1)
