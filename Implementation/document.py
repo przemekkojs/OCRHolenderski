@@ -4,6 +4,7 @@ from docx import Document
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 from docx.shared import Pt
+from docx.enum.text import WD_ALIGN_PARAGRAPH
 
 from formatter import coordinates_to_lines
 
@@ -19,36 +20,57 @@ def __remove_table_borders(table):
 
     tblPr.append(tblBorders)
 
-def create_document(contents: list[list[str | list]], output_path: str, debug: bool = False) -> None:
+def create_document(contents:list[list[str | list]], output_path:str, debug:bool = False) -> None:
     if debug:
         print("Rozpoczęcie tworzenia dokumentu programu MS Word")
 
-    lines = coordinates_to_lines(contents, debug)
+    lines = coordinates_to_lines(contents, debug)   
 
-    doc = Document()
+    doc = Document()    
 
-    last_y: int = 0
-    last_x: int = 0
-    buffer: list[str] = []
+    last_y:int = 0
+    buffer:list[str] = []
     table = None
     table_cols = 0
 
+    font_size:int = 11
+    alignment:str = "L"
+
     for line in lines:
-        translated: str = line[1]
-        coords: tuple[int, int, int] = line[2]
-        cur_y: int = coords[0]
-        cur_x: int = coords[1]
-        font_size: int = coords[2]
+        translated:str = line[1]
+        coords:tuple[int, int, int, str] = line[2]
+        cur_y:int = coords[0]
 
         if cur_y != last_y:
             if len(buffer) == 1:
+                if table != None:                    
+                    table = None
+                    doc.add_paragraph()                   
+
                 paragraph = doc.add_paragraph()
+                paragraph.paragraph_format.space_after = Pt(0)
+
+                match alignment:
+                    case 'L':
+                        paragraph.alignment = WD_ALIGN_PARAGRAPH.LEFT
+                    case 'C':
+                        paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                    case 'R':
+                        paragraph.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+                    case _:
+                        paragraph.alignment = WD_ALIGN_PARAGRAPH.LEFT               
+
                 run = paragraph.add_run(buffer[0].strip())
-                run.font.size = Pt(font_size)
+                run.font.size = Pt(font_size)                         
             else:
                 row_length = len(buffer)
 
                 if table is None or row_length != table_cols:
+                    if table is None:
+                        paragraph = doc.add_paragraph()
+
+                    paragraph.paragraph_format.space_after = Pt(0)
+
                     table = doc.add_table(rows=1, cols=row_length)
                     __remove_table_borders(table)
                     table.style = 'Table Grid'
@@ -58,22 +80,42 @@ def create_document(contents: list[list[str | list]], output_path: str, debug: b
                     row_cells = table.add_row().cells
 
                 for index, text in enumerate(buffer):
-                    row_cells[index].text = text.strip()
-
-            buffer = []
+                    row_cells[index].text = text.strip()                
+            
+            buffer.clear()
 
         buffer.append(translated)
-
-        last_x = cur_x
         last_y = cur_y
+        font_size:int = coords[2]
+        alignment:str = coords[3]
 
     if buffer:
         if len(buffer) == 1:
-            doc.add_paragraph(buffer[0].strip())
+            if table != None:                    
+                table = None
+                doc.add_paragraph()
+
+            paragraph = doc.add_paragraph()
+
+            match alignment:
+                case 'L':
+                    paragraph.alignment = WD_ALIGN_PARAGRAPH.LEFT
+                case 'C':
+                    paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                case 'R':
+                    paragraph.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+                case _:
+                    paragraph.alignment = WD_ALIGN_PARAGRAPH.LEFT               
+
+            run = paragraph.add_run(buffer[0].strip())
+            run.font.size = Pt(font_size)
         else:
             row_length = len(buffer)
+
             if table is None or row_length != table_cols:
-                table = doc.add_table(rows=1, cols=row_length)
+                if table is None:
+                    table = doc.add_table(rows=1, cols=row_length)
+
                 __remove_table_borders(table)
                 table.style = 'Table Grid'
                 table_cols = row_length
