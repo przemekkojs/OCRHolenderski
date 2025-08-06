@@ -42,7 +42,7 @@ def __linear(n:int) -> int:
     n += 3
     return 2 * n
 
-def __detect_font_size(rect:list[int], func=__linear, debug:bool=False) -> int:
+def __detect_font_size(rect:list[int], func=__fibonacci, debug:bool=False) -> int:
     y_min:int = rect[2]
     y_max:int = rect[3]
     diff:int = abs(y_max - y_min)

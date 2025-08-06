@@ -10,7 +10,7 @@ _tokenizer = AutoTokenizer.from_pretrained(model_name)
 _model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
 _translator = pipeline("translation", model=_model, tokenizer=_tokenizer, src_lang="nld_Latn", tgt_lang="pol_Latn")
 
-async def __translate_word(what:str, lang_from:str, buffer:list[tuple[str, str]], lang_to:str='pl', debug:bool=False) -> str:
+async def __translate_word_api(what:str, lang_from:str, buffer:list[tuple[str, str]], lang_to:str='pl', debug:bool=False) -> str:
     if what == "":
         return ""
     if not check_if_language_exists(lang_from):
@@ -44,7 +44,7 @@ async def __translate_word_model(what:str, lang_from:str, buffer:list[tuple[str,
         raise ValueError(f"Language {lang_from} is not supported")
 
     if debug:
-        print(f"Tłumaczenie {what} z >> {lang_from} << na >> {lang_to} <<")
+        print(f"Tłumaczenie {what} z >> {lang_from} << na >> {lang_to} << z użyciem modelu >> {model_name} <<")
 
     dictionary_translation = await get_phrase_from_dictionary(what, lang_from, lang_to)
 
@@ -62,6 +62,10 @@ async def __translate_word_model(what:str, lang_from:str, buffer:list[tuple[str,
         buffer.append((what, result))
         return result
 
+def create_full_sentences(input:list[list[str | list]], lang:str) -> list[list[str | list]]:
+    result:list[list[str | list]] = []    
+
+    return result
 
 async def translate(input: list[list[str | list]], lang_from:str, lang_to:str='pl', translation_mode:str='api') -> None:
     __translation_buffer:list = []
@@ -72,7 +76,7 @@ async def translate(input: list[list[str | list]], lang_from:str, lang_to:str='p
 
     for row in input:
         word = row[0]
-        translation_func = __translate_word_model if translation_mode == 'model' else __translate_word
+        translation_func = __translate_word_model if translation_mode == 'model' else __translate_word_api
         tasks.append(translation_func(word, lang_from, buffer=__translation_buffer, lang_to=lang_to))
 
     results: list[str | Exception] = await asyncio.gather(*tasks, return_exceptions=True)
