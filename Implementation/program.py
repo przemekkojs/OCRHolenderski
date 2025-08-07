@@ -1,6 +1,7 @@
 import os
 import sys
 import asyncio
+import traceback
 
 import tkinter as tk
 from tkinter import messagebox
@@ -9,9 +10,10 @@ from ocr_reader import ocr
 from standarizer import process_image_file
 from translator import translate
 from paths import save_prefs, save_tmp, save_logs, save_any, load_path
-from formatter import format_for_translation
 from document import create_document
 from languages import check_if_language_exists
+
+from complex_types import *
 
 class program:
     def __init__(self, file_in:str, debug:bool=False):
@@ -28,7 +30,7 @@ class program:
         self.file_out_success:str = os.path.join(folder, file_succ_name)
         self.file_out_error:str = os.path.join(folder, file_err_name)
 
-        self.contents:list[list[str | list]] = []
+        self.contents:list[row] = []
 
         self.result_success:bool = False
         self.log_contents:str = f"ROZPOCZĘCIE DZIAŁANIA PROGRAMU\nPLIK WEJŚCIOWY:\t{os.path.basename(file_in)}\nFOLDER:\t\t{folder}\nPLIK SUKCESU:\t{self.file_out_success}\nPLIK BŁEDU:\t{self.file_out_error}"
@@ -51,17 +53,14 @@ class program:
             save_tmp(path_out, "")
             process_image_file(self.file_in, path_out, debug=self.debug)
 
-            points_words:list[list[list | str]] = self.ocr.read_points_and_words(path_out)
-
+            self.contents = self.ocr.read_points_and_words(path_out)
             self.log_contents += "\nEKSTRAKCJA TEKSTU ZAKOŃCZONA POWODZENIEM"
-            self.contents = format_for_translation(points_words)
         except Exception as e:
-            details:str = str(e)
+            details:str = traceback.format_exc()
             self.log_contents += f"\n{details}"
             self.log_contents += "\nEKSTRAKCJA TEKSTU ZAKOŃCZONA NIEPOWODZENIEM"
             self.exit()
 
-    # Tutaj trzeba zmienić NL i PL na parametry
     def __translate(self, lang_from:str, lang_to:str='pl') -> None:
         self.log_contents += "\n\nROZPOCZĘCIE TŁUMACZENIA TEKSTU"
 
@@ -71,12 +70,17 @@ class program:
         try:
             asyncio.run(translate(self.contents, lang_from=lang_from, lang_to=lang_to))
             
-            for row in self.contents:
-                print(row[0], '=>', row[2])
+            if self.debug:
+                print("\nTŁUMACZENIA:")
+
+                for row in self.contents:
+                    print(row.word, '=>', row.translation)
+
+                print()
 
             self.log_contents += "\nTŁUMACZENIE ZAKOŃCZONE POWODZENIEM"
         except Exception as e:
-            details:str = str(e)
+            details:str = traceback.format_exc()
             self.log_contents += f"\n{details}"
             self.log_contents += "\nTŁUMACZENIE ZAKOŃCZONE NIEPOWODZENIEM"
             self.exit()
@@ -90,7 +94,7 @@ class program:
             self.log_contents += f"\nŚCIEŻKA DO DOKUMENTU: {self.file_out_success}"
             self.log_contents += "\nTWORZENIE DOKUMENTU ZAKOŃCZONE POWODZENIEM"
         except Exception as e:
-            details:str = str(e)
+            details:str = traceback.format_exc()
             self.log_contents += f"\n{details}"
             self.log_contents += "\nTWORZENIE DOKUMENTU ZAKOŃCZONE NIEPOWODZENIEM"
             self.exit()

@@ -40,7 +40,7 @@ def __window(name:str, size:tuple[int, int], file) -> None:
     cv2.resizeWindow(name, size[0], size[1])
     cv2.imshow(name, file) 
 
-def process_image_file(image_path:str, output_path:str, output_size:tuple[int, int]=(1240, 1754), debug:bool=False, show_images:bool=False):
+def process_image_file(image_path:str, output_path:str, output_size:tuple[int, int]=(1240, 1754), debug:bool=False, show_images:bool=False) -> None:
     image = cv2.imread(image_path)
     orig = image.copy()
     

@@ -7,12 +7,14 @@ from docx.shared import Pt
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 
 from formatter import coordinates_to_lines
+from complex_types import row, layout_row
 
 def __remove_table_borders(table):
     tbl = table._tbl
     tblPr = tbl.tblPr
 
     tblBorders = OxmlElement('w:tblBorders')
+
     for border_name in ['top', 'left', 'bottom', 'right', 'insideH', 'insideV']:
         border = OxmlElement(f'w:{border_name}')
         border.set(qn('w:val'), 'nil')
@@ -20,13 +22,13 @@ def __remove_table_borders(table):
 
     tblPr.append(tblBorders)
 
-def create_document(contents:list[list[str | list]], output_path:str, debug:bool = False) -> None:
+def create_document(contents:list[row], output_path:str, debug:bool = False) -> None:
     if debug:
         print("Rozpoczęcie tworzenia dokumentu programu MS Word")
 
-    lines = coordinates_to_lines(contents, debug)   
+    lines:list[layout_row] = coordinates_to_lines(contents, debug)
 
-    doc = Document()    
+    doc = Document()
 
     last_y:int = 0
     buffer:list[str] = []
@@ -37,9 +39,8 @@ def create_document(contents:list[list[str | list]], output_path:str, debug:bool
     alignment:str = "L"
 
     for line in lines:
-        translated:str = line[1]
-        coords:tuple[int, int, int, str] = line[2]
-        cur_y:int = coords[0]
+        translated:str = line.translation
+        cur_y:int = line.document_row
 
         if cur_y != last_y:
             if len(buffer) == 1:
@@ -86,8 +87,8 @@ def create_document(contents:list[list[str | list]], output_path:str, debug:bool
 
         buffer.append(translated)
         last_y = cur_y
-        font_size:int = coords[2]
-        alignment:str = coords[3]
+        font_size:int = line.font_size
+        alignment:str = line.alignment
 
     if buffer:
         if len(buffer) == 1:
