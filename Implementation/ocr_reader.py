@@ -16,7 +16,7 @@ class ocr:
 
     def __get_contents(self, file:str) -> list[dict[str, ] | str | list]:
         detail_level:int = 3 if self.debug else 1
-        contents = self.reader.readtext(file, detail=detail_level, text_threshold=0.3)
+        contents = self.reader.readtext(file, detail=detail_level, text_threshold=0.3, paragraph=False)
 
         if self.debug:
             draw_bounding_boxes(file, contents)

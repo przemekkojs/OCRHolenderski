@@ -42,6 +42,7 @@ class row:
     coords:list[list[int]]
     word:str
     translation:str = ""
+    lines:int = 1
 
     def __post_init__(self):
         x_1, y_1 = self.coords[0]
@@ -55,6 +56,9 @@ class row:
         y_max = int(max(y_3, y_4))
 
         self.rect:list[int] = [x_min, x_max, y_min, y_max]
+
+    def __str__(self) -> str:
+        return f"row({self.word}, {self.translation}, [{self.rect[0]}, {self.rect[1]}, {self.rect[2]}, {self.rect[3]}])"
 
 
 @dataclass

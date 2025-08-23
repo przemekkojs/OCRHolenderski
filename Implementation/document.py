@@ -3,7 +3,7 @@ import os
 from docx import Document
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
-from docx.shared import Pt
+from docx.shared import Pt, RGBColor
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 
 from formatter import coordinates_to_lines
@@ -40,6 +40,12 @@ def create_document(contents:list[row], output_path:str, debug:bool = False) -> 
 
     for line in lines:
         translated:str = line.translation
+        bad_translation:bool = False
+
+        if translated == "":
+            translated = line.word
+            bad_translation = True
+
         cur_y:int = line.document_row
 
         if cur_y != last_y:
@@ -62,7 +68,14 @@ def create_document(contents:list[row], output_path:str, debug:bool = False) -> 
                         paragraph.alignment = WD_ALIGN_PARAGRAPH.LEFT               
 
                 run = paragraph.add_run(buffer[0].strip())
-                run.font.size = Pt(font_size)                         
+
+                if bad_translation:
+                    run.font.color.rgb = RGBColor(0xFF, 0x00, 0x00)
+                else:
+                    run.font.color.rgb = RGBColor(0x00, 0x00, 0x00)
+
+                run.font.size = Pt(11) # Pt(font_size)
+
             else:
                 row_length = len(buffer)
 
@@ -109,7 +122,13 @@ def create_document(contents:list[row], output_path:str, debug:bool = False) -> 
                     paragraph.alignment = WD_ALIGN_PARAGRAPH.LEFT               
 
             run = paragraph.add_run(buffer[0].strip())
-            run.font.size = Pt(font_size)
+
+            if bad_translation:
+                    run.font.color.rgb = RGBColor(0xFF, 0x00, 0x00)
+            else:
+                run.font.color.rgb = RGBColor(0x00, 0x00, 0x00)
+
+            run.font.size = Pt(11) # Pt(font_size)
         else:
             row_length = len(buffer)
 

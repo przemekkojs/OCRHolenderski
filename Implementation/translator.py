@@ -73,20 +73,50 @@ async def __translate_word_model(what:str, lang_from:str, buffer:list[buffer_row
 
         return result
 
-def create_full_sentences(input:list[row], lang:str, debug:bool=False) -> list[row]:
-    input.sort(key=lambda x:(x.coords[2], x.coords[0]))
-    result:list[row] = []    
+def __create_full_sentences(input:list[row], lang:str, debug:bool=False) -> list[row]:
+    row_index:int = 0
+    page_width:int = 1240
 
-    return result
+    while row_index < len(input) - 1:
+        current_row:row = input[row_index]
+        next_row:row = input[row_index + 1]        
 
-async def translate(input: list[row], lang_from:str, lang_to:str='pl', translation_mode:str='api') -> None:
+        current_row_width:int = abs(current_row.rect[0] - current_row.rect[1])
+        current_row_end_y:int = current_row.rect[3]
+        next_row_start_y:int = next_row.rect[2]
+
+        if current_row_width > 0.5 * page_width and current_row_end_y >= next_row_start_y - 3:
+            input.pop(row_index + 1)
+            next_row_width:int = abs(next_row.rect[0] - next_row.rect[1])
+            y_override:int = next_row.rect[3]
+
+            current_text:str = current_row.word
+            next_text:str = next_row.word
+            merged_text:str = f"{current_text}{next_text}"
+
+            current_row.word = merged_text
+
+            if current_row.rect[3] < y_override:
+                current_row.rect[3] = y_override
+
+            if current_row.rect[1] < next_row_width:
+                current_row.rect[1] = next_row_width
+        else:
+            row_index += 1
+
+    return input            
+
+async def translate(input: list[row], lang_from:str, lang_to:str='pl', translation_mode:str='api', debug:bool=False) -> None:
     __translation_buffer:list[buffer_row] = []
     tasks:list = []
 
     if translation_mode not in ['model', 'api']:
         raise ValueError("Possible translation modes are 'model' and 'api'")
+    
+    sentences:list[row] = __create_full_sentences(input, lang_from, debug=debug)
+    # sentences:list[row] = input
 
-    for current_row in input:
+    for current_row in sentences:
         word:str = current_row.word
         translation_func:function = __translate_word_model if translation_mode == 'model' else __translate_word_api
         tasks.append(translation_func(word, lang_from, buffer=__translation_buffer, lang_to=lang_to))
@@ -95,13 +125,30 @@ async def translate(input: list[row], lang_from:str, lang_to:str='pl', translati
 
     for index in range(len(results)):
         result = results[index]
-        current:row = input[index]
+        current:row = sentences[index]
 
         if isinstance(result, Exception):
-            print(str(result))
-            current.translation = "NIEPOWODZENIE"
+            if debug:
+                print(str(result))
+
+            current.translation = ""
         else:
             current.translation = result
 
     for words in __translation_buffer:
         await set_phrase_to_dictionary(words.word, words.translation, lang_from, lang_to)
+
+if __name__ == '__main__':
+    # row(Het voertuig wordt verkocht in de staat als het zich bevindt, gekend door de koper na een testrit en, , [152, 1074, 828, 860])
+    # row(uitgebreid onderzoek, rozległe badania, [144, 350, 862, 890])
+
+    tmp:list[row] = [
+        row([[152, 828], [1074, 828], [1074, 860], [152, 860]], "TEST 1", ""),
+        row([[152, 828], [1074, 828], [1074, 860], [152, 860]], "TEST 2", ""),
+        row([[152, 828], [1074, 828], [1074, 860], [152, 860]], "Het voertuig wordt verkocht in de staat als het zich bevindt, gekend door de koper na een testrit en", ""),
+        row([[144, 862], [350, 862], [350, 890], [144, 890]], "uitgebreid onderzoek", "rozległe badania"),
+        row([[152, 828], [1074, 828], [1074, 860], [152, 860]], "TEST 3", ""),
+        row([[152, 828], [1074, 828], [1074, 860], [152, 860]], "TEST 4", "")
+    ]
+
+    # print(__create_full_sentences(tmp, "nl", debug=True))

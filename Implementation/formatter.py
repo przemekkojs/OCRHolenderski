@@ -3,10 +3,14 @@ from collections import defaultdict
 from complex_types import layout_row, row
 from font_functions import *
 
-def __detect_font_size(rect:list[int], func=fibonacci, debug:bool=False) -> int:
+def __detect_font_size(current_row:row, func=fibonacci, debug:bool=False) -> int:
+    rect:list[int] = current_row.rect
+    lines:int = current_row.lines
+
     y_min:int = rect[2]
     y_max:int = rect[3]
-    diff:int = abs(y_max - y_min)
+
+    diff:int = abs(y_max - y_min) / lines
     bucket:int = int((diff) / 10)
     result:int = func(bucket)
 
@@ -14,6 +18,7 @@ def __detect_font_size(rect:list[int], func=fibonacci, debug:bool=False) -> int:
         print(f'Wykryto rozmiar czcionki między [{y_min}, {y_max}]: {diff}, {bucket}, rozmiar: {result}')
 
     return result
+    # return 11
 
 def __detect_alignment(rect:list[int], sheet_size:int=1240, margin:int=300, debug:bool=False) -> alignment:
     x_min:int = int(rect[0])
@@ -62,7 +67,7 @@ def __create_layout(sorted_input:list[row], debug: bool = False):
             else:
                 buffer:int = prev_y_index
 
-        font_size:int = __detect_font_size(current_coords, debug=debug)
+        font_size:int = __detect_font_size(current_line, debug=debug)
         last_font_size:int = font_size if last_result_line is None else last_result_line.font_size
 
         if font_size != last_font_size and buffer == prev_y_index:
