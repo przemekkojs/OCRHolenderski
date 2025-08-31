@@ -3,13 +3,8 @@ import asyncio
 from languages import check_if_language_exists
 from googletrans import Translator
 from paths import get_phrase_from_dictionary, set_phrase_to_dictionary
-from transformers import AutoTokenizer, AutoModelForSeq2SeqLM, pipeline
 from complex_types import row, buffer_row
-
-model_name = "facebook/nllb-200-distilled-600M"
-_tokenizer = AutoTokenizer.from_pretrained(model_name)
-_model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
-_translator = pipeline("translation", model=_model, tokenizer=_tokenizer, src_lang="nld_Latn", tgt_lang="pol_Latn")
+from translator_models import get_translation_model
 
 async def __translate_word_api(what:str, lang_from:str, buffer:list[buffer_row], lang_to:str='pl', debug:bool=False) -> str:
     if debug:
@@ -44,7 +39,7 @@ async def __translate_word_api(what:str, lang_from:str, buffer:list[buffer_row],
 
 async def __translate_word_model(what:str, lang_from:str, buffer:list[buffer_row], lang_to:str='pl', debug:bool=False) -> str:
     if debug:
-        print(f"Tłumaczenie {what} z >> {lang_from} << na >> {lang_to} << z użyciem modelu >> {model_name} <<")
+        print(f"Tłumaczenie {what} z >> {lang_from} << na >> {lang_to} << z użyciem modelu")
 
     if what == "":
         return ""
@@ -106,15 +101,16 @@ def __create_full_sentences(input:list[row], lang:str, debug:bool=False) -> list
 
     return input            
 
-async def translate(input: list[row], lang_from:str, lang_to:str='pl', translation_mode:str='api', debug:bool=False) -> None:
+async def translate(input: list[row], lang_from:str, lang_to:str='pl', translation_mode:str='model', debug:bool=False) -> None:
     __translation_buffer:list[buffer_row] = []
+    _translator = get_translation_model(lang_from, lang_to, debug)
+
     tasks:list = []
 
     if translation_mode not in ['model', 'api']:
         raise ValueError("Possible translation modes are 'model' and 'api'")
     
     sentences:list[row] = __create_full_sentences(input, lang_from, debug=debug)
-    # sentences:list[row] = input
 
     for current_row in sentences:
         word:str = current_row.word
@@ -137,18 +133,3 @@ async def translate(input: list[row], lang_from:str, lang_to:str='pl', translati
 
     for words in __translation_buffer:
         await set_phrase_to_dictionary(words.word, words.translation, lang_from, lang_to)
-
-if __name__ == '__main__':
-    # row(Het voertuig wordt verkocht in de staat als het zich bevindt, gekend door de koper na een testrit en, , [152, 1074, 828, 860])
-    # row(uitgebreid onderzoek, rozległe badania, [144, 350, 862, 890])
-
-    tmp:list[row] = [
-        row([[152, 828], [1074, 828], [1074, 860], [152, 860]], "TEST 1", ""),
-        row([[152, 828], [1074, 828], [1074, 860], [152, 860]], "TEST 2", ""),
-        row([[152, 828], [1074, 828], [1074, 860], [152, 860]], "Het voertuig wordt verkocht in de staat als het zich bevindt, gekend door de koper na een testrit en", ""),
-        row([[144, 862], [350, 862], [350, 890], [144, 890]], "uitgebreid onderzoek", "rozległe badania"),
-        row([[152, 828], [1074, 828], [1074, 860], [152, 860]], "TEST 3", ""),
-        row([[152, 828], [1074, 828], [1074, 860], [152, 860]], "TEST 4", "")
-    ]
-
-    # print(__create_full_sentences(tmp, "nl", debug=True))

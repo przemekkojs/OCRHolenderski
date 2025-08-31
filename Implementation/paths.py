@@ -93,6 +93,23 @@ def save_logs(contents) -> None:
     now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     __save(load_path("LOGS_FOLDER"), f"{now}.log", contents)
 
+def save_model(key:str, model, tokenizer) -> None:
+    models_path:str = load_path("MODELS_FOLDER")
+    cur_dir:str = os.path.join(models_path, key)
+
+    model.save_pretrained(cur_dir)
+    tokenizer.save_pretrained(cur_dir)
+
+def model_exists(key:str) -> bool:
+    models_path:str = load_path("MODELS_FOLDER")
+    cur_dir:str = os.path.join(models_path, key)
+
+    return os.path.exists(cur_dir)
+
+def model_path(key:str) -> str:
+    models_path:str = load_path("MODELS_FOLDER")
+    return os.path.join(models_path, key)
+
 def save_tmp(file_name:str, contents) -> None:
     __save(load_path("TMP_FOLDER"), file_name, contents)
 

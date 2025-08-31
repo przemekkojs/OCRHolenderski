@@ -19,7 +19,8 @@ class program:
     def __init__(self, file_in:str, debug:bool=False):
         self.file_in:str = file_in
         self.debug:bool = debug
-        self.ocr:ocr = ocr('nl', debug)
+
+        self.ocr:ocr = ocr('nl', debug) # TODO - jakoś sparametryzować to trzeba
 
         file_no_ext:str = os.path.basename(file_in).split('.')[0]
         file_succ_name:str = f"{file_no_ext}.docx"
@@ -68,7 +69,7 @@ class program:
             raise ValueError(f'Nieprawidłowy język źródłowy >> {lang_from} <<')
                 
         try:
-            asyncio.run(translate(self.contents, lang_from=lang_from, lang_to=lang_to))
+            asyncio.run(translate(self.contents, lang_from=lang_from, lang_to=lang_to, debug=self.debug))
             
             if self.debug:
                 print("\nTŁUMACZENIA:")
@@ -85,11 +86,11 @@ class program:
             self.log_contents += "\nTŁUMACZENIE ZAKOŃCZONE NIEPOWODZENIEM"
             self.exit()
 
-    def __create_document(self) -> None:
+    def __create_document(self, lang_from:str, lang_to:str='pl') -> None:
         self.log_contents += "\n\nROZPOCZĘCIE TWORZENIA DOKUMENTU"
 
         try:
-            create_document(self.contents, self.file_out_success, self.debug)
+            create_document(self.contents, self.file_out_success, lang_from, lang_to, self.debug)
 
             self.log_contents += f"\nŚCIEŻKA DO DOKUMENTU: {self.file_out_success}"
             self.log_contents += "\nTWORZENIE DOKUMENTU ZAKOŃCZONE POWODZENIEM"
@@ -117,7 +118,7 @@ class program:
 
         self.__extract_text()
         self.__translate(lang_from, lang_to)
-        self.__create_document()
+        self.__create_document(lang_from, lang_to)
 
         self.result_success = True
         self.exit()

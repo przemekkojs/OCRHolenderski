@@ -8,6 +8,7 @@ from docx.enum.text import WD_ALIGN_PARAGRAPH
 
 from formatter import coordinates_to_lines
 from complex_types import row, layout_row
+from languages import language_code_to_adjective
 
 def __remove_table_borders(table):
     tbl = table._tbl
@@ -22,13 +23,36 @@ def __remove_table_borders(table):
 
     tblPr.append(tblBorders)
 
-def create_document(contents:list[row], output_path:str, debug:bool = False) -> None:
+def create_document(contents:list[row], output_path:str, lang_from:str, lang_to:str, debug:bool = False) -> None:
     if debug:
         print("Rozpoczęcie tworzenia dokumentu programu MS Word")
 
     lines:list[layout_row] = coordinates_to_lines(contents, debug)
 
     doc = Document()
+
+    # === NAGŁÓWEK ===
+    section = doc.sections[0]
+    header = section.header
+    header_contents = header.paragraphs[0]
+    header_run = header_contents.add_run(f"Uwierzytelnione tłumaczenie z języka {language_code_to_adjective(lang_from)}")
+    header_run.italic = True
+
+    # === LINIA NAGŁÓWKA ===
+    p_hc = header_contents._element
+    p_hc_Pr = p_hc.get_or_add_pPr()
+    p_hc_Border = OxmlElement('w:pBdr')
+    bottom = OxmlElement('w:bottom')
+
+    bottom.set(qn('w:val'), 'single')
+    bottom.set(qn('w:sz'), '6')
+    bottom.set(qn('w:space'), '1')
+    bottom.set(qn('w:color'), '000000')
+
+    p_hc_Border.append(bottom)
+    p_hc_Pr.append(p_hc_Border)
+    # ===
+    # ===
 
     last_y:int = 0
     buffer:list[str] = []
