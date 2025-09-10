@@ -5,7 +5,7 @@ from paths import get_phrase_from_dictionary, set_phrase_to_dictionary
 from complex_types import row, buffer_row
 from translator_models import get_translation_model, get_filter_model
 
-async def __translate_word_model(what:str, lang_from:str, buffer:list[buffer_row], lang_to:str='pl', debug:bool=False) -> str:
+async def __translate_word_model(what:str, lang_from:str, _translator, _nlp, buffer:list[buffer_row], lang_to:str='pl', debug:bool=False) -> str:
     if debug:
         print(f"Tłumaczenie {what} z >> {lang_from} << na >> {lang_to} << z użyciem modelu")
 
@@ -28,28 +28,45 @@ async def __translate_word_model(what:str, lang_from:str, buffer:list[buffer_row
         return ""
     
     loop = asyncio.get_running_loop()
-
-    # TUTAJ TRZEBA DODAĆ LOGIKĘ NLP
-
-    dictionary_translation:str = await get_phrase_from_dictionary(what, lang_from, lang_to)
+    dictionary_translation: str = await get_phrase_from_dictionary(what, lang_from, lang_to)
 
     if dictionary_translation != "":
         if debug:
             print("Tłumaczenie znalezione w słowniku")
-
         return dictionary_translation
-    else:
+
+    if debug:
+        print("Tłumaczenie z użyciem modelu")
+
+    doc = _nlp(what)
+    entities = {}
+    protected_text = what
+
+    if debug:
+        print("ENCJE:")
+
+    for i, ent in enumerate(doc.ents):
         if debug:
-            print("Tłumaczenie z użyciem modelu")
+            print(ent)
 
-        result = await loop.run_in_executor(None, lambda: _translator(what)[0]["translation_text"]) # Translator jest definiowany w innym miejscu, przed wywołaniem funkcji
+        placeholder = f"<ENT{i}>"
+        entities[placeholder] = ent.text
+        protected_text = protected_text.replace(ent.text, placeholder)
 
-        buffer.append(buffer_row(
-            word=what,
-            translation=result
-        ))
+    if debug:
+        print()
 
-        return result
+    result = await loop.run_in_executor(None, lambda: _translator(protected_text)[0]["translation_text"])   
+
+    for placeholder, original in entities.items():
+        result = result.replace(placeholder, original)
+
+    buffer.append(buffer_row(
+        word=what,
+        translation=result
+    ))
+
+    return result
 
 def __create_full_sentences(input:list[row], lang:str, debug:bool=False) -> list[row]:
     row_index:int = 0
@@ -87,7 +104,7 @@ def __create_full_sentences(input:list[row], lang:str, debug:bool=False) -> list
 async def translate(input: list[row], lang_from:str, lang_to:str='pl', debug:bool=False) -> None:
     __translation_buffer:list[buffer_row] = []
     _translator = get_translation_model(lang_from, lang_to, debug)
-    _nlp = get_filter_model(lang_from, debug)
+    _nlp = get_filter_model('nl_core_news_sm', debug) # TODO: Parametryzacja
 
     tasks:list = []
     
@@ -95,7 +112,7 @@ async def translate(input: list[row], lang_from:str, lang_to:str='pl', debug:boo
 
     for current_row in sentences:
         word:str = current_row.word        
-        tasks.append(__translate_word_model(word, lang_from, buffer=__translation_buffer, lang_to=lang_to))
+        tasks.append(__translate_word_model(word, lang_from, _translator, _nlp, buffer=__translation_buffer, lang_to=lang_to, debug=debug))
 
     results: list[str | Exception] = await asyncio.gather(*tasks, return_exceptions=True)
 

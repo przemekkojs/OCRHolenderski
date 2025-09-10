@@ -141,7 +141,8 @@ class program:
 
         if self.result_success:
             messagebox.showinfo("Sukces", "Działanie programu zakończone powodzeniem.")
+            sys.exit(0)
         else:
             messagebox.showerror("Błąd", "Działanie programu zakończone niepowodzeniem.")
+            sys.exit(-1)
 
-        sys.exit(-1)

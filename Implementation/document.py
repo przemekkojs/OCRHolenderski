@@ -66,7 +66,7 @@ def create_document(contents:list[row], output_path:str, lang_from:str, lang_to:
         translated:str = line.translation
         bad_translation:bool = False
 
-        if translated == "":
+        if translated == "" or translated is None:
             translated = line.word
             bad_translation = True
 

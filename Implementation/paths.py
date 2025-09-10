@@ -6,6 +6,8 @@ import os
 import json
 import aiofiles
 
+BASE_DIR:str = os.path.dirname(__file__)
+
 async def __get_dictionary(lang_from:str, lang_to:str) -> dict[str, str]:
     dictionary_path:str = os.path.join(load_path('DICT_FOLDER'), f"{lang_from}_{lang_to}.json")
             
@@ -116,18 +118,10 @@ def model_path(key:str) -> str:
     models_path:str = load_path("MODELS_FOLDER")
     return os.path.join(models_path, key)
 
-def save_filter(key:str, model):
-    filters_path:str = load_path("FILTERS_FOLDER")
-    cur_dir:str = os.path.join(filters_path, key)
+def filter_path(name:str) -> str:
+    path:str = os.path.join('./Filters', name)
 
-    model.to_disk(cur_dir)
+    if not os.path.exists(path):
+        os.mkdir(path)
 
-def filter_exists(key:str) -> bool:
-    filters_path:str = load_path("FILTERS_FOLDER")
-    cur_dir:str = os.path.join(filters_path, key)
-
-    return os.path.exists(cur_dir)
-
-def filter_path(key:str) -> bool:
-    filters_path:str = load_path("FILTERS_FOLDER")
-    return os.path.join(filters_path, key)
+    return path
