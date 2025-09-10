@@ -7,6 +7,7 @@ Pillow
 opencv-python
 
 transformers
+spacy
 
 python-docx
 

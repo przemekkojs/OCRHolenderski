@@ -93,6 +93,12 @@ def save_logs(contents) -> None:
     now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     __save(load_path("LOGS_FOLDER"), f"{now}.log", contents)
 
+def save_tmp(file_name:str, contents) -> None:
+    __save(load_path("TMP_FOLDER"), file_name, contents)
+
+def save_prefs(file_name:str, contents) -> None:
+    __save(load_path("PREFS_FOLDER"), file_name, contents)
+
 def save_model(key:str, model, tokenizer) -> None:
     models_path:str = load_path("MODELS_FOLDER")
     cur_dir:str = os.path.join(models_path, key)
@@ -110,8 +116,18 @@ def model_path(key:str) -> str:
     models_path:str = load_path("MODELS_FOLDER")
     return os.path.join(models_path, key)
 
-def save_tmp(file_name:str, contents) -> None:
-    __save(load_path("TMP_FOLDER"), file_name, contents)
+def save_filter(key:str, model):
+    filters_path:str = load_path("FILTERS_FOLDER")
+    cur_dir:str = os.path.join(filters_path, key)
 
-def save_prefs(file_name:str, contents) -> None:
-    __save(load_path("PREFS_FOLDER"), file_name, contents)
+    model.to_disk(cur_dir)
+
+def filter_exists(key:str) -> bool:
+    filters_path:str = load_path("FILTERS_FOLDER")
+    cur_dir:str = os.path.join(filters_path, key)
+
+    return os.path.exists(cur_dir)
+
+def filter_path(key:str) -> bool:
+    filters_path:str = load_path("FILTERS_FOLDER")
+    return os.path.join(filters_path, key)

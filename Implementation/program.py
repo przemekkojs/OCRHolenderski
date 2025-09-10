@@ -52,7 +52,7 @@ class program:
             path_out:str = os.path.join(load_path("TMP_FOLDER"), f"{name_without_ext}.png")
 
             save_tmp(path_out, "")
-            process_image_file(self.file_in, path_out, debug=self.debug)
+            process_image_file(self.file_in, path_out, debug=self.debug, show_images=False)
 
             self.contents = self.ocr.read_points_and_words(path_out)
             self.log_contents += "\nEKSTRAKCJA TEKSTU ZAKOŃCZONA POWODZENIEM"
@@ -80,7 +80,7 @@ class program:
                 print()
 
             self.log_contents += "\nTŁUMACZENIE ZAKOŃCZONE POWODZENIEM"
-        except Exception as e:
+        except Exception:
             details:str = traceback.format_exc()
             self.log_contents += f"\n{details}"
             self.log_contents += "\nTŁUMACZENIE ZAKOŃCZONE NIEPOWODZENIEM"
@@ -94,7 +94,7 @@ class program:
 
             self.log_contents += f"\nŚCIEŻKA DO DOKUMENTU: {self.file_out_success}"
             self.log_contents += "\nTWORZENIE DOKUMENTU ZAKOŃCZONE POWODZENIEM"
-        except Exception as e:
+        except Exception:
             details:str = traceback.format_exc()
             self.log_contents += f"\n{details}"
             self.log_contents += "\nTWORZENIE DOKUMENTU ZAKOŃCZONE NIEPOWODZENIEM"

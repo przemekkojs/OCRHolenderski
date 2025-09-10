@@ -1,14 +1,15 @@
 import json
-
-from paths import save_model, model_exists, model_path
-from languages import CODES_TO_MODEL_CODES
+import spacy
 
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM, pipeline
+
+from paths import save_model, model_exists, model_path, filter_exists, filter_path, save_filter
+from languages import CODES_TO_MODEL_CODES
 
 def __create_key(lang_from:str, lang_to:str) -> str:
     return f"{lang_from}_{lang_to}"
 
-def __download_model(lang_from:str, lang_to:str, debug:bool=False):
+def __download_translation_model(lang_from:str, lang_to:str, debug:bool=False):
     key:str = __create_key(lang_from, lang_to)
 
     with open("models.json", 'r') as f:
@@ -38,6 +39,54 @@ def __download_model(lang_from:str, lang_to:str, debug:bool=False):
 
     return (tokenizer, model)
 
+def __download_filter_model(key:str, debug:bool=False):
+    with open("models.json", 'r') as f:
+        data = json.load(f)
+
+    filter_name:str = data[key]
+
+    if filter_name == "" or filter_name is None:
+        if debug:
+            print(f"FILTR O NAZWIE {filter_name} NIE ISTNIEJE W BAZIE")
+
+        raise ValueError(f"Filter for language >> {key} << not found")
+
+    if debug:
+        print(f"POBIERANIE FILTRU >> {filter_name} <<")
+
+    model = spacy.load(filter_name)
+
+    if debug:
+        print(f"POBIERANIE FILTRU >> {filter_name} << ZAKOŃCZONE")
+
+    save_filter(key, model)
+
+    if debug:
+        print(f"FILTR ZAPISANY POMYŚLNIE")
+
+    return model
+
+def get_filter_model(key:str, debug:bool=False):
+    if debug:
+        print(f"UZYSKIWANIE DOSTĘPU DO FILTRU >> {key} <<")
+
+    exists:bool = filter_exists(key)
+
+    if exists:
+        path:str = filter_path(key)
+
+        if debug:
+            print(f"FILTR ISTNIEJE W >> {path} <<")
+
+        model = spacy.load(path)
+    else:
+        if debug:
+            print("FILTR NIE ISTNIEJE LOKALNIE")
+
+        model = __download_filter_model(key, debug)
+
+    return model
+
 def get_translation_model(lang_from:str, lang_to:str, debug:bool=False):
     key:str = __create_key(lang_from, lang_to)
 
@@ -58,7 +107,7 @@ def get_translation_model(lang_from:str, lang_to:str, debug:bool=False):
         if debug:
             print("MODEL NIE ISTNIEJE LOKALNIE")
 
-        tokenizer, model = __download_model(lang_from, lang_to)
+        tokenizer, model = __download_translation_model(lang_from, lang_to, debug)
 
     src_lang:str = CODES_TO_MODEL_CODES[lang_from]
     tgt_lang:str = CODES_TO_MODEL_CODES[lang_to]

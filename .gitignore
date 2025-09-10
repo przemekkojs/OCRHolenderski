@@ -2,6 +2,7 @@ TestImages/
 Meet_04_07/
 Meet_27_06/
 Meet_18_07/
+Meet_02_09/
 
 *.pyc
 */__pycache__
@@ -12,6 +13,8 @@ icon.png
 
 Implementation/build
 Implementation/dist
+Implementation/img/*.docx
+Implementation/img/*.jpg
 
 *.spec
 Installer/

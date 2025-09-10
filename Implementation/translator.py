@@ -1,51 +1,35 @@
 import asyncio
 
 from languages import check_if_language_exists
-from googletrans import Translator
 from paths import get_phrase_from_dictionary, set_phrase_to_dictionary
 from complex_types import row, buffer_row
-from translator_models import get_translation_model
-
-async def __translate_word_api(what:str, lang_from:str, buffer:list[buffer_row], lang_to:str='pl', debug:bool=False) -> str:
-    if debug:
-        print(f"Tłumaczenie {what} z >> {lang_from} << na >> {lang_to} <<")
-
-    if what == "":
-        return ""
-    
-    if not check_if_language_exists(lang_from):
-        raise ValueError(f"Language {lang_from} is not supported")   
-
-    dictionary_translation:str = await get_phrase_from_dictionary(what, lang_from, lang_to)
-
-    if dictionary_translation != "":
-        if debug:
-            print("Tłumaczenie znalezione w słowniku")
-
-        return dictionary_translation
-    else:
-        if debug:
-            print("Tłumaczenie z użyciem API")
-
-        translator = Translator()
-        result = await translator.translate(what, dest=lang_to, src=lang_from)
-        text = result.text
-        buffer.append(buffer_row(
-            word=what,
-            translation=text
-        ))
-
-        return text
+from translator_models import get_translation_model, get_filter_model
 
 async def __translate_word_model(what:str, lang_from:str, buffer:list[buffer_row], lang_to:str='pl', debug:bool=False) -> str:
     if debug:
         print(f"Tłumaczenie {what} z >> {lang_from} << na >> {lang_to} << z użyciem modelu")
 
-    if what == "":
-        return ""
-
     if not check_if_language_exists(lang_from):
         raise ValueError(f"Language {lang_from} is not supported")    
+
+    if what == "":
+        return ""
+    
+    if _translator is None:
+        if debug:
+            print("Obiekt >> _translator << nie został zdefiniowany")
+        
+        return ""
+    
+    if _nlp is None:
+        if debug:
+            print("Obiekt >> _nlp << nie został zdefiniowany")
+        
+        return ""
+    
+    loop = asyncio.get_running_loop()
+
+    # TUTAJ TRZEBA DODAĆ LOGIKĘ NLP
 
     dictionary_translation:str = await get_phrase_from_dictionary(what, lang_from, lang_to)
 
@@ -58,8 +42,7 @@ async def __translate_word_model(what:str, lang_from:str, buffer:list[buffer_row
         if debug:
             print("Tłumaczenie z użyciem modelu")
 
-        loop = asyncio.get_running_loop()
-        result = await loop.run_in_executor(None, lambda: _translator(what)[0]["translation_text"])
+        result = await loop.run_in_executor(None, lambda: _translator(what)[0]["translation_text"]) # Translator jest definiowany w innym miejscu, przed wywołaniem funkcji
 
         buffer.append(buffer_row(
             word=what,
@@ -101,21 +84,18 @@ def __create_full_sentences(input:list[row], lang:str, debug:bool=False) -> list
 
     return input            
 
-async def translate(input: list[row], lang_from:str, lang_to:str='pl', translation_mode:str='model', debug:bool=False) -> None:
+async def translate(input: list[row], lang_from:str, lang_to:str='pl', debug:bool=False) -> None:
     __translation_buffer:list[buffer_row] = []
     _translator = get_translation_model(lang_from, lang_to, debug)
+    _nlp = get_filter_model(lang_from, debug)
 
     tasks:list = []
-
-    if translation_mode not in ['model', 'api']:
-        raise ValueError("Possible translation modes are 'model' and 'api'")
     
     sentences:list[row] = __create_full_sentences(input, lang_from, debug=debug)
 
     for current_row in sentences:
-        word:str = current_row.word
-        translation_func:function = __translate_word_model if translation_mode == 'model' else __translate_word_api
-        tasks.append(translation_func(word, lang_from, buffer=__translation_buffer, lang_to=lang_to))
+        word:str = current_row.word        
+        tasks.append(__translate_word_model(word, lang_from, buffer=__translation_buffer, lang_to=lang_to))
 
     results: list[str | Exception] = await asyncio.gather(*tasks, return_exceptions=True)
 
