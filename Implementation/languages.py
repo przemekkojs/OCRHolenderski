@@ -7,6 +7,10 @@ CODES_TO_MODEL_CODES:dict[str, str] = {
     'pl' : 'pol_Latn'
 }
 
+CODES_TO_FILTER_CODES:dict[str, str] = {
+    'nl' : 'nl_core_news_sm'
+}
+
 def check_if_language_exists(language:str) -> bool:
     return language in SUPPORTED_LANGUAGES
 

@@ -100,7 +100,6 @@ class program:
             self.log_contents += "\nTWORZENIE DOKUMENTU ZAKOŃCZONE NIEPOWODZENIEM"
             self.exit()
 
-    # To trzeba jakoś fajnie zrobić
     def run(self, lang_from:str, lang_to:str='pl') -> None:
         flag:bool = False
 

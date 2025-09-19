@@ -98,7 +98,7 @@ def create_document(contents:list[row], output_path:str, lang_from:str, lang_to:
                 else:
                     run.font.color.rgb = RGBColor(0x00, 0x00, 0x00)
 
-                run.font.size = Pt(11) # Pt(font_size)
+                run.font.size = Pt(font_size)
 
             else:
                 row_length = len(buffer)

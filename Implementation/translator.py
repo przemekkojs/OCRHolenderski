@@ -45,7 +45,12 @@ async def __translate_word_model(what:str, lang_from:str, _translator, _nlp, buf
     if debug:
         print("ENCJE:")
 
+    allowed_labels:set[str] = {"PERSON", "LOC", "FAC", "GPE", "ADDRESS"}
+
     for i, ent in enumerate(doc.ents):
+        if ent.label_ not in allowed_labels:
+            continue
+
         if debug:
             print(ent)
 
@@ -104,7 +109,7 @@ def __create_full_sentences(input:list[row], lang:str, debug:bool=False) -> list
 async def translate(input: list[row], lang_from:str, lang_to:str='pl', debug:bool=False) -> None:
     __translation_buffer:list[buffer_row] = []
     _translator = get_translation_model(lang_from, lang_to, debug)
-    _nlp = get_filter_model('nl_core_news_sm', debug) # TODO: Parametryzacja
+    _nlp = get_filter_model(lang_from, debug) # TODO: Parametryzacja
 
     tasks:list = []
     

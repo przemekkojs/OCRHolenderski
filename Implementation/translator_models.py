@@ -5,7 +5,7 @@ from spacy.cli import download
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM, pipeline
 
 from paths import save_model, model_exists, model_path, filter_path
-from languages import CODES_TO_MODEL_CODES
+from languages import CODES_TO_MODEL_CODES, CODES_TO_FILTER_CODES
 
 def __create_key(lang_from:str, lang_to:str) -> str:
     return f"{lang_from}_{lang_to}"
@@ -41,8 +41,10 @@ def __download_translation_model(lang_from:str, lang_to:str, debug:bool=False):
     return (tokenizer, model)
 
 def get_filter_model(name:str, debug:bool=False):
-    path:str = filter_path(name)
+    decoded_name:str = CODES_TO_FILTER_CODES[name]
+    path:str = filter_path(decoded_name)
     model = spacy.load(path)
+
     return model
 
 def get_translation_model(lang_from:str, lang_to:str, debug:bool=False):
@@ -72,6 +74,7 @@ def get_translation_model(lang_from:str, lang_to:str, debug:bool=False):
 
     return pipeline("translation", model=model, tokenizer=tokenizer, src_lang=src_lang, tgt_lang=tgt_lang)
 
+# DEVELOPMENT ONLY!
 def __download_filter(name:str):
     path:str = filter_path(name)
 
