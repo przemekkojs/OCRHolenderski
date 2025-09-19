@@ -67,7 +67,7 @@ def __create_layout(sorted_input:list[row], debug: bool = False):
             else:
                 buffer:int = prev_y_index
 
-        font_size:int = __detect_font_size(current_line, debug=debug)
+        font_size:int = 11 # __detect_font_size(current_line, debug=debug)
         last_font_size:int = font_size if last_result_line is None else last_result_line.font_size
 
         if font_size != last_font_size and buffer == prev_y_index:

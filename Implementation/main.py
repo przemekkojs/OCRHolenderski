@@ -4,6 +4,9 @@ import os
 from program import program
 from paths import save_logs
 
+import tkinter as tk
+from tkinter import filedialog
+
 def __check(cond:bool, msg:str, code:int=-1, debug:bool=False) -> None:
     if cond:
         save_logs(msg)
@@ -29,4 +32,14 @@ def run(args:list[str], debug:bool=False) -> None:
     p.run(lang_from='nl', lang_to='pl')
 
 if __name__ == '__main__':
-    run(['main.py', 'Implementation\\img\\test.jpg'], debug=True)
+    debug:bool = False
+    root = tk.Tk()
+    root.withdraw()
+
+    file_path = filedialog.askopenfilename(
+        title="Wybierz plik",
+        filetypes=[("Pliki graficzne", "*.jpg"), ("Pliki graficzne", "*.jpeg"), ("Pliki graficzne", "*.png")]
+    )
+
+    __check(file_path is None, "Nie wybrano pliku", debug=debug)
+    run(['main.py', file_path], debug=debug)

@@ -8,13 +8,16 @@ import aiofiles
 
 BASE_DIR:str = os.path.dirname(__file__)
 
-async def __get_dictionary(lang_from:str, lang_to:str) -> dict[str, str]:
+async def __get_dictionary(lang_from:str, lang_to:str, debug:bool=False) -> dict[str, str]:
     dictionary_path:str = os.path.join(load_path('DICT_FOLDER'), f"{lang_from}_{lang_to}.json")
             
     if not os.path.exists(dictionary_path):
         async with aiofiles.open(dictionary_path, 'w', encoding='utf-8') as file:
             await file.write("{}")
-        print(f'Utworzono plik słownika >> {dictionary_path} <<')
+
+        if debug: 
+            print(f'Utworzono plik słownika >> {dictionary_path} <<')
+
         return {}
 
     async with aiofiles.open(dictionary_path, 'r', encoding='utf-8') as f:
@@ -24,17 +27,19 @@ async def __get_dictionary(lang_from:str, lang_to:str) -> dict[str, str]:
         except json.JSONDecodeError:
             dictionary = {}
 
-    print(f'Plik słownika >> {dictionary_path} << już istnieje')
+    if debug:
+        print(f'Plik słownika >> {dictionary_path} << już istnieje')
+
     return dictionary
 
-async def get_phrase_from_dictionary(phrase:str, lang_from:str, lang_to:str) -> str:
-    dictionary = await __get_dictionary(lang_from, lang_to)
+async def get_phrase_from_dictionary(phrase:str, lang_from:str, lang_to:str, debug:bool=False) -> str:
+    dictionary = await __get_dictionary(lang_from, lang_to, debug)
     return dictionary.get(phrase, "")
 
-async def set_phrase_to_dictionary(phrase:str, translated:str, lang_from:str, lang_to:str) -> str:
+async def set_phrase_to_dictionary(phrase:str, translated:str, lang_from:str, lang_to:str, debug:bool=False) -> str:
     print(f"Zapisywanie >> {phrase} << do słownika ({lang_from} => {lang_to})")
 
-    dictionary = await __get_dictionary(lang_from, lang_to)
+    dictionary = await __get_dictionary(lang_from, lang_to, debug)
     dictionary[phrase] = translated
     path = os.path.join(load_path('DICT_FOLDER'), f"{lang_from}_{lang_to}.json")    
 
