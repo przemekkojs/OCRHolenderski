@@ -1,8 +1,5 @@
 from easyocr import Reader
-import os
-
 from languages import SUPPORTED_LANGUAGES
-from paths import load_path
 
 class ocr_models:
     def __init__(self, debug:bool=False):

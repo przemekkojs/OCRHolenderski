@@ -5,7 +5,7 @@ from paths import get_phrase_from_dictionary, set_phrase_to_dictionary
 from complex_types import row, buffer_row
 from translator_models import get_translation_model, get_filter_model
 
-async def __translate_word_model(what:str, lang_from:str, _translator, _nlp, buffer:list[buffer_row], lang_to:str='pl', debug:bool=False) -> str:
+async def __translate_word_model(what:str, dictionary:dict[str, str], lang_from:str, _translator, _nlp, buffer:list[buffer_row], lang_to:str='pl', debug:bool=False) -> str:
     if debug:
         print(f"Tłumaczenie {what} z >> {lang_from} << na >> {lang_to} << z użyciem modelu")
 
@@ -28,7 +28,7 @@ async def __translate_word_model(what:str, lang_from:str, _translator, _nlp, buf
         return ""
     
     loop = asyncio.get_running_loop()
-    dictionary_translation: str = await get_phrase_from_dictionary(what, lang_from, lang_to)
+    dictionary_translation: str = await get_phrase_from_dictionary(what, dictionary, debug)
 
     if dictionary_translation != "":
         if debug:
@@ -106,18 +106,17 @@ def __create_full_sentences(input:list[row], lang:str, debug:bool=False) -> list
 
     return input            
 
-async def translate(input: list[row], lang_from:str, lang_to:str='pl', debug:bool=False) -> None:
+async def translate(input: list[row], dictionary:dict[str, str], lang_from:str, lang_to:str='pl', debug:bool=False) -> None:
     __translation_buffer:list[buffer_row] = []
     _translator = get_translation_model(lang_from, lang_to, debug)
-    _nlp = get_filter_model(lang_from, debug) # TODO: Parametryzacja
+    _nlp = get_filter_model(lang_from, debug)
 
-    tasks:list = []
-    
+    tasks:list = []    
     sentences:list[row] = __create_full_sentences(input, lang_from, debug=debug)
 
     for current_row in sentences:
         word:str = current_row.word        
-        tasks.append(__translate_word_model(word, lang_from, _translator, _nlp, buffer=__translation_buffer, lang_to=lang_to, debug=debug))
+        tasks.append(__translate_word_model(word, dictionary, lang_from, _translator, _nlp, buffer=__translation_buffer, lang_to=lang_to, debug=debug))
 
     results: list[str | Exception] = await asyncio.gather(*tasks, return_exceptions=True)
 
@@ -134,4 +133,4 @@ async def translate(input: list[row], lang_from:str, lang_to:str='pl', debug:boo
             current.translation = result
 
     for words in __translation_buffer:
-        await set_phrase_to_dictionary(words.word, words.translation, lang_from, lang_to)
+        await set_phrase_to_dictionary(words.word, words.translation, dictionary, lang_from, lang_to, debug)

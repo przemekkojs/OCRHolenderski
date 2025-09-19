@@ -3,45 +3,55 @@ from docx import Document
 from typing import overload
 
 import os
+import sys
 import json
 import aiofiles
 
 BASE_DIR:str = os.path.dirname(__file__)
 
-async def __get_dictionary(lang_from:str, lang_to:str, debug:bool=False) -> dict[str, str]:
+def __resource_path(relative_path):
+    try:
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+    return os.path.join(base_path, relative_path)
+
+def get_dictionary(lang_from:str, lang_to:str, debug:bool=False) -> dict[str, str]:
     dictionary_path:str = os.path.join(load_path('DICT_FOLDER'), f"{lang_from}_{lang_to}.json")
             
     if not os.path.exists(dictionary_path):
-        async with aiofiles.open(dictionary_path, 'w', encoding='utf-8') as file:
-            await file.write("{}")
+        with open(dictionary_path, 'w', encoding='utf-8') as file:
+            file.write("{}")
 
         if debug: 
             print(f'Utworzono plik słownika >> {dictionary_path} <<')
 
         return {}
 
-    async with aiofiles.open(dictionary_path, 'r', encoding='utf-8') as f:
-        content = await f.read()
+    with open(dictionary_path, 'r', encoding='utf-8') as f:
+        content = f.read()
+
         try:
             dictionary: dict[str, str] = json.loads(content)
         except json.JSONDecodeError:
             dictionary = {}
 
     if debug:
-        print(f'Plik słownika >> {dictionary_path} << już istnieje')
+        print(f'Plik słownika >> {dictionary_path} << już istnieje. Liczba fraz: {len(dictionary)}.')
 
     return dictionary
 
-async def get_phrase_from_dictionary(phrase:str, lang_from:str, lang_to:str, debug:bool=False) -> str:
-    dictionary = await __get_dictionary(lang_from, lang_to, debug)
+async def get_phrase_from_dictionary(phrase:str, dictionary:dict[str, str], debug:bool=False) -> str:    
     return dictionary.get(phrase, "")
 
-async def set_phrase_to_dictionary(phrase:str, translated:str, lang_from:str, lang_to:str, debug:bool=False) -> str:
-    print(f"Zapisywanie >> {phrase} << do słownika ({lang_from} => {lang_to})")
+async def set_phrase_to_dictionary(phrase:str, translated:str, dictionary:dict[str, str], lang_from:str, lang_to:str, debug:bool=False) -> str:
+    file_name:str = f"{lang_from}_{lang_to}.json"
 
-    dictionary = await __get_dictionary(lang_from, lang_to, debug)
+    if debug:
+        print(f"Zapisywanie >> {phrase} << do słownika >> {file_name} <<")
+
     dictionary[phrase] = translated
-    path = os.path.join(load_path('DICT_FOLDER'), f"{lang_from}_{lang_to}.json")    
+    path = os.path.join(load_path('DICT_FOLDER'), file_name)    
 
     async with aiofiles.open(path, "w", encoding="utf-8") as f:
         await f.write(json.dumps(dictionary, ensure_ascii=False, indent=4))
@@ -49,13 +59,13 @@ async def set_phrase_to_dictionary(phrase:str, translated:str, lang_from:str, la
     return translated
 
 def load_path(key:str) -> None:
-    with open("paths.json", "r", encoding="utf-8") as f:
+    with open(__resource_path("paths.json"), "r", encoding="utf-8") as f:
         config = json.load(f)
 
-    return os.path.normpath(config[key])
+    return __resource_path(os.path.normpath(config[key]))
 
 def __save(path:str, file_name:str, contents, debug:bool=False) -> None:
-    full_path:str = os.path.join(path, file_name)
+    full_path:str = __resource_path(os.path.join(path, file_name))
     os.makedirs(os.path.dirname(full_path), exist_ok=True)
 
     _, extension = os.path.splitext(file_name)
@@ -124,7 +134,7 @@ def model_path(key:str) -> str:
     return os.path.join(models_path, key)
 
 def filter_path(name:str) -> str:
-    path:str = os.path.join('./Filters', name)
+    path:str = __resource_path(os.path.join('Filters', name))
 
     if not os.path.exists(path):
         os.mkdir(path)

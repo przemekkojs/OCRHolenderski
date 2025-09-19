@@ -1,6 +1,4 @@
-from complex_types import alignment
-from collections import defaultdict
-from complex_types import layout_row, row
+from complex_types import alignment, layout_row, row
 from font_functions import *
 
 def __detect_font_size(current_row:row, func=fibonacci, debug:bool=False) -> int:

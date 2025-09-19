@@ -24,3 +24,7 @@ test.docx
 test.jpg
 
 Filters/
+
+Implementation/build/*
+Implementation/dist/*
+Implementation/scripts/*

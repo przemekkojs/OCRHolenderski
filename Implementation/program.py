@@ -9,18 +9,22 @@ from tkinter import messagebox
 from ocr_reader import ocr
 from standarizer import process_image_file
 from translator import translate
-from paths import save_prefs, save_tmp, save_logs, save_any, load_path
+from paths import save_tmp, save_logs, save_any, load_path, get_dictionary
 from document import create_document
 from languages import check_if_language_exists
 
 from complex_types import *
 
 class program:
-    def __init__(self, file_in:str, debug:bool=False):
+    def __init__(self, file_in:str, lang_from:str, lang_to:str, debug:bool=False):
         self.file_in:str = file_in
+        self.lang_from:str = lang_from
+        self.lang_to:str = lang_to
+
         self.debug:bool = debug
 
-        self.ocr:ocr = ocr('nl', debug) # TODO - jakoś sparametryzować to trzeba
+        self.ocr:ocr = ocr(lang_from, debug)
+        self.dictionary = get_dictionary(lang_from, lang_to, debug)
 
         file_no_ext:str = os.path.basename(file_in).split('.')[0]
         file_succ_name:str = f"{file_no_ext}.docx"
@@ -62,14 +66,14 @@ class program:
             self.log_contents += "\nEKSTRAKCJA TEKSTU ZAKOŃCZONA NIEPOWODZENIEM"
             self.exit()
 
-    def __translate(self, lang_from:str, lang_to:str='pl') -> None:
+    def __translate(self) -> None:
         self.log_contents += "\n\nROZPOCZĘCIE TŁUMACZENIA TEKSTU"
 
-        if not check_if_language_exists(lang_from):
-            raise ValueError(f'Nieprawidłowy język źródłowy >> {lang_from} <<')
+        if not check_if_language_exists(self.lang_from):
+            raise ValueError(f'Nieprawidłowy język źródłowy >> {self.lang_from} <<')
                 
         try:
-            asyncio.run(translate(self.contents, lang_from=lang_from, lang_to=lang_to, debug=self.debug))
+            asyncio.run(translate(self.contents, self.dictionary, lang_from=self.lang_from, lang_to=self.lang_to, debug=self.debug))
             
             if self.debug:
                 print("\nTŁUMACZENIA:")
@@ -86,11 +90,11 @@ class program:
             self.log_contents += "\nTŁUMACZENIE ZAKOŃCZONE NIEPOWODZENIEM"
             self.exit()
 
-    def __create_document(self, lang_from:str, lang_to:str='pl') -> None:
+    def __create_document(self) -> None:
         self.log_contents += "\n\nROZPOCZĘCIE TWORZENIA DOKUMENTU"
 
         try:
-            create_document(self.contents, self.file_out_success, lang_from, lang_to, self.debug)
+            create_document(self.contents, self.file_out_success, self.lang_from, self.lang_to, self.debug)
 
             self.log_contents += f"\nŚCIEŻKA DO DOKUMENTU: {self.file_out_success}"
             self.log_contents += "\nTWORZENIE DOKUMENTU ZAKOŃCZONE POWODZENIEM"
@@ -100,7 +104,7 @@ class program:
             self.log_contents += "\nTWORZENIE DOKUMENTU ZAKOŃCZONE NIEPOWODZENIEM"
             self.exit()
 
-    def run(self, lang_from:str, lang_to:str='pl') -> None:
+    def run(self) -> None:
         flag:bool = False
 
         if self.__check_for_ms_word_instance():
@@ -116,8 +120,8 @@ class program:
                 print("WYKRYTO ZAMKNIĘCIE PROGRAMU MS WORD - PROGRAM ZOSTANIE URUCHOMIONY")
 
         self.__extract_text()
-        self.__translate(lang_from, lang_to)
-        self.__create_document(lang_from, lang_to)
+        self.__translate()
+        self.__create_document()
 
         self.result_success = True
         self.exit()
